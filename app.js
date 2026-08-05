@@ -9,6 +9,7 @@ const recentLimits = {
   quiz: 6,
   reading: 5,
   context: 5,
+  phrases: 5,
   cloze: 5,
   dictation: 5,
   confusion: 5,
@@ -23,6 +24,25 @@ const rankLadder = [
   { xp: 720, title: "Guardiao" },
   { xp: 1040, title: "Mestre Kana" },
 ];
+
+const phraseCategories = ["saudacoes", "viagem", "conversa", "anime"];
+
+const xpTable = {
+  recognition: { correct: 10, wrong: -6 },
+  reading: { correct: 12, wrong: -7, reveal: -4 },
+  context: { correct: 14, wrong: -8, reveal: -5 },
+  phrases: { correct: 18, wrong: -10, reveal: -6 },
+  cloze: { correct: 11, wrong: -6 },
+  dictation: { correct: 14, wrong: -8, reveal: -5 },
+  confusion: { correct: 10, wrong: -6 },
+  builder: { correct: 14, wrong: -8, reveal: -5 },
+  arcadeShurikenHit: 5,
+  arcadeShurikenMiss: -4,
+  arcadeFoodHit: 8,
+  arcadeFoodMiss: -6,
+  arcadePairsHit: 7,
+  arcadePairsMiss: -5,
+};
 
 const irregularNotes = {
   "し": "Excecao da linha S: soa shi.",
@@ -484,6 +504,141 @@ const contextDecks = createContextDecks({
   },
 });
 
+const phraseDecks = createPhraseDecks({
+  base: [
+    [
+      "saudacoes",
+      "\u3053\u3093\u306b\u3061\u306f\u305d\u3089\u306f\u3042\u304a\u3044\u3067\u3059",
+      "konnichihasorahaaoidesu",
+      "ko / n / ni / chi / ha / so / ra / ha / a / o / i / de / su",
+      "ola, o ceu esta azul",
+      "abrindo a conversa com calma"
+    ],
+    [
+      "saudacoes",
+      "\u307e\u305f\u3042\u3068\u3067\u3053\u3053\u3067\u3042\u3046",
+      "mataatodekokodeau",
+      "ma / ta / a / to / de / ko / ko / de / a / u",
+      "a gente se ve aqui mais tarde",
+      "combinando um reencontro"
+    ],
+    [
+      "viagem",
+      "\u3048\u304d\u307e\u3067\u3042\u308b\u3044\u3066\u3044\u304f",
+      "ekimadearuiteiku",
+      "e / ki / ma / de / a / ru / i / te / i / ku",
+      "vou andando ate a estacao",
+      "indo para a estacao"
+    ],
+    [
+      "viagem",
+      "\u307b\u3066\u308b\u306e\u3078\u3084\u3067\u306b\u3082\u3064\u3092\u304a\u304f",
+      "hoterunoheyadenimotsuwooku",
+      "ho / te / ru / no / he / ya / de / ni / mo / tsu / o / o / ku",
+      "deixo a bagagem no quarto do hotel",
+      "chegando na hospedagem"
+    ],
+    [
+      "conversa",
+      "\u3044\u307e\u306a\u306b\u3092\u3057\u3066\u3044\u308b\u306e\u3067\u3059\u304b",
+      "imananiwoshiteirunodesuka",
+      "i / ma / na / ni / o / shi / te / i / ru / no / de / su / ka",
+      "o que voce esta fazendo agora?",
+      "puxando assunto"
+    ],
+    [
+      "conversa",
+      "\u308f\u305f\u3057\u306f\u3053\u306e\u3046\u305f\u304c\u3059\u304d\u3067\u3059",
+      "watashihakonoutagasukidesu",
+      "wa / ta / shi / ha / ko / no / u / ta / ga / su / ki / de / su",
+      "eu gosto desta musica",
+      "falando de gosto pessoal"
+    ],
+    [
+      "anime",
+      "\u3053\u306e\u3042\u306b\u3081\u306f\u3055\u3044\u3054\u307e\u3067\u307f\u305f\u3044",
+      "konoanimehasaigomademitai",
+      "ko / no / a / ni / me / ha / sa / i / go / ma / de / mi / ta / i",
+      "quero ver este anime ate o fim",
+      "comentando uma serie"
+    ],
+    [
+      "anime",
+      "\u3064\u304e\u306e\u306f\u306a\u3057\u3082\u307e\u305f\u307f\u308b",
+      "tsuginohanashimomatamiru",
+      "tsu / gi / no / ha / na / shi / mo / ma / ta / mi / ru",
+      "vou ver o proximo episodio tambem",
+      "continuando a historia"
+    ],
+  ],
+  extended: [
+    [
+      "saudacoes",
+      "\u304a\u306f\u3088\u3046\u3054\u3056\u3044\u307e\u3059\u307e\u305f\u3042\u3068\u3067\u3042\u3046",
+      "ohayougozaimasumataatodeau",
+      "o / ha / yo / u / go / za / i / ma / su / ma / ta / a / to / de / a / u",
+      "bom dia, nos vemos mais tarde",
+      "falando com mais educacao"
+    ],
+    [
+      "saudacoes",
+      "\u304a\u3084\u3059\u307f\u306d\u3080\u308b\u307e\u3048\u306b\u307e\u3069\u3092\u3057\u3081\u3066\u306d",
+      "oyasuminemurumaaenimadowoshimetene",
+      "o / ya / su / mi / ne / mu / ru / ma / e / ni / ma / do / o / shi / me / te / ne",
+      "boa noite, feche a janela antes de dormir",
+      "encerrando o dia"
+    ],
+    [
+      "viagem",
+      "\u3070\u3059\u306e\u3058\u304b\u3093\u3092\u3057\u3089\u3079\u3066\u304b\u3089\u3067\u308b",
+      "basunojikanwoshirabetekaraderu",
+      "ba / su / no / ji / ka / n / o / shi / ra / be / te / ka / ra / de / ru",
+      "eu vejo o horario do onibus antes de sair",
+      "planejando a rota"
+    ],
+    [
+      "viagem",
+      "\u307f\u3061\u304c\u308f\u304b\u3089\u306a\u3044\u306e\u3067\u3048\u304d\u3044\u3093\u306b\u304d\u304f",
+      "michigawakaranainodeekiinnikiku",
+      "mi / chi / ga / wa / ka / ra / na / i / no / de / e / ki / i / n / ni / ki / ku",
+      "como nao sei o caminho, pergunto para a pessoa da estacao",
+      "pedindo ajuda"
+    ],
+    [
+      "conversa",
+      "\u305d\u306e\u306f\u306a\u3057\u3092\u304d\u3044\u3066\u3068\u3066\u3082\u3042\u3093\u3057\u3093\u3057\u305f",
+      "sonohanashiwokiitetotemoanshinshita",
+      "so / no / ha / na / shi / o / ki / i / te / to / te / mo / a / n / shi / n / shi / ta",
+      "fiquei muito aliviado depois de ouvir isso",
+      "respondendo com emocao"
+    ],
+    [
+      "conversa",
+      "\u3053\u3093\u3069\u306e\u3084\u3059\u307f\u306b\u3069\u3053\u3078\u3044\u304d\u305f\u3044\u3067\u3059\u304b",
+      "kondonoyasuminidokoheikitaidesuka",
+      "ko / n / do / no / ya / su / mi / ni / do / ko / he / i / ki / ta / i / de / su / ka",
+      "nas proximas ferias, para onde voce quer ir?",
+      "planejando algo junto"
+    ],
+    [
+      "anime",
+      "\u3053\u306e\u3042\u306b\u3081\u306e\u3064\u3065\u304d\u304c\u3068\u3066\u3082\u304d\u306b\u306a\u308b",
+      "konoanimenotsudukigatotemokininaru",
+      "ko / no / a / ni / me / no / tsu / du / ki / ga / to / te / mo / ki / ni / na / ru",
+      "estou muito curioso com a continuacao deste anime",
+      "falando do proximo arco"
+    ],
+    [
+      "anime",
+      "\u3055\u3044\u3054\u306e\u305b\u308a\u3075\u304c\u3053\u3053\u308d\u306b\u306e\u3053\u308a\u307e\u3057\u305f",
+      "saigonoserifugakokoroninokorimashita",
+      "sa / i / go / no / se / ri / fu / ga / ko / ko / ro / ni / no / ko / ri / ma / shi / ta",
+      "a fala final ficou no meu coracao",
+      "lembrando uma cena forte"
+    ],
+  ],
+});
+
 const contextBuilderDecks = createBuilderDecksFromContext(contextDecks);
 
 const confusionDecks = createConfusionDecks({
@@ -647,6 +802,7 @@ const charIndex = new Map(allEntries.map((entry) => [entry.char, entry]));
 hydrateDeckCharIds(readingDecks);
 hydrateDeckCharIds(builderDecks);
 hydrateDeckCharIds(contextDecks);
+hydrateDeckCharIds(phraseDecks);
 hydrateDeckCharIds(contextBuilderDecks);
 hydrateDeckCharIds(confusionDecks);
 
@@ -770,6 +926,19 @@ const elements = {
   showContextAnswer: document.getElementById("show-context-answer"),
   nextContext: document.getElementById("next-context"),
   contextStreakLabel: document.getElementById("context-streak-label"),
+  phraseCategories: document.getElementById("phrase-categories"),
+  phraseCategoryLabel: document.getElementById("phrase-category-label"),
+  phraseStreakLabel: document.getElementById("phrase-streak-label"),
+  phraseScene: document.getElementById("phrase-scene"),
+  phraseWord: document.getElementById("phrase-word"),
+  phraseBreakdown: document.getElementById("phrase-breakdown"),
+  phraseMeaning: document.getElementById("phrase-meaning"),
+  phraseForm: document.getElementById("phrase-form"),
+  phraseInput: document.getElementById("phrase-input"),
+  phraseFeedback: document.getElementById("phrase-feedback"),
+  phraseVoice: document.getElementById("phrase-voice"),
+  showPhraseAnswer: document.getElementById("show-phrase-answer"),
+  nextPhrase: document.getElementById("next-phrase"),
   clozeKindLabel: document.getElementById("cloze-kind-label"),
   clozeInstruction: document.getElementById("cloze-instruction"),
   clozeWord: document.getElementById("cloze-word"),
@@ -879,6 +1048,7 @@ const state = {
   script: "hiragana",
   level: "base",
   focus: "all",
+  phraseCategory: "saudacoes",
   currentUser: null,
   currentUserId: null,
   authMode: "login",
@@ -891,6 +1061,7 @@ const state = {
   quizStreak: 0,
   readingStreak: 0,
   contextStreak: 0,
+  phraseStreak: 0,
   clozeStreak: 0,
   dictationStreak: 0,
   confusionStreak: 0,
@@ -901,6 +1072,7 @@ const state = {
     quiz: [],
     reading: [],
     context: [],
+    phrases: [],
     cloze: [],
     dictation: [],
     confusion: [],
@@ -909,6 +1081,7 @@ const state = {
   quiz: null,
   reading: null,
   context: null,
+  phrase: null,
   cloze: null,
   dictation: null,
   confusion: null,
@@ -1018,12 +1191,48 @@ function isCloudMode() {
 }
 
 function normalizeLoadedProgress(progress) {
-  return {
+  const normalized = {
     ...defaultProgress(),
     ...(progress || {}),
     charStats: progress?.charStats || progress?.stats || {},
     itemStats: progress?.itemStats || {},
   };
+  normalized.xp = Number.isFinite(Number(normalized.xp))
+    ? Math.max(0, Number(normalized.xp))
+    : computeLegacyXp(normalized);
+  return normalized;
+}
+
+function computeLegacyXp(progress = defaultProgress()) {
+  const practicedEntries = Object.entries(progress.charStats || {}).filter(([, value]) => {
+    const total = (value?.hits || 0) + (value?.misses || 0);
+    return total > 0;
+  });
+
+  const masteredCount = practicedEntries.filter(([id, value]) => {
+    if (!entryIndex.has(id)) {
+      return false;
+    }
+    const total = value.hits + value.misses;
+    return value.hits >= 4 && total >= 5 && value.hits / total >= 0.78;
+  }).length;
+
+  const clearedGames = Number((progress.bestArcadeShuriken || 0) > 0) +
+    Number((progress.bestArcadeFoods || 0) > 0) +
+    Number((progress.bestArcadePairs || 0) > 0);
+
+  return practicedEntries.length * 8 + masteredCount * 14 + clearedGames * 24;
+}
+
+function applyXpDelta(delta) {
+  const current = Number(state.progress.xp || 0);
+  const next = Math.max(0, current + delta);
+  state.progress.xp = next;
+  return next - current;
+}
+
+function formatXpDelta(delta) {
+  return `${delta > 0 ? "+" : ""}${delta} XP`;
 }
 
 function setSyncStatus(status) {
@@ -1533,9 +1742,18 @@ function bindControls() {
       return;
     }
     state.readingStreak = 0;
+    markItemProgress(state.reading.id, false);
+    markTextProgress(state.reading.text, false);
+    const delta = applyXpDelta(xpTable.reading.reveal);
     elements.readingStreakLabel.textContent = `Sequencia: ${state.readingStreak}`;
     elements.readingFeedback.textContent =
       `${state.reading.answer} • ${state.reading.breakdown}${state.reading.pseudo ? " • combinacao de treino" : ""}`;
+    elements.readingFeedback.textContent =
+      `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`;
+    saveProgress();
+    renderStats();
+    renderDetailCard();
+    renderFocusRadar();
   });
 
   elements.nextReading.addEventListener("click", () => {
@@ -1559,14 +1777,64 @@ function bindControls() {
       return;
     }
     state.contextStreak = 0;
+    markItemProgress(state.context.id, false);
+    markTextProgress(state.context.text, false);
+    const delta = applyXpDelta(xpTable.context.reveal);
     elements.contextStreakLabel.textContent = `Sequencia: ${state.contextStreak}`;
     elements.contextFeedback.textContent =
       `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning}`;
+    elements.contextFeedback.textContent =
+      `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`;
+    saveProgress();
+    renderStats();
+    renderDetailCard();
+    renderFocusRadar();
   });
 
   elements.nextContext.addEventListener("click", () => {
     generateContext();
     renderContext();
+  });
+
+  elements.phraseCategories?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-phrase-category]");
+    if (!button) {
+      return;
+    }
+    setPhraseCategory(button.dataset.phraseCategory);
+  });
+
+  elements.phraseForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    checkPhrase();
+  });
+
+  elements.phraseVoice?.addEventListener("click", () => {
+    if (state.phrase) {
+      speakText(state.phrase.text);
+    }
+  });
+
+  elements.showPhraseAnswer?.addEventListener("click", () => {
+    if (!state.phrase) {
+      return;
+    }
+    state.phraseStreak = 0;
+    markItemProgress(state.phrase.id, false);
+    markTextProgress(state.phrase.text, false);
+    const delta = applyXpDelta(xpTable.phrases.reveal);
+    elements.phraseStreakLabel.textContent = `Sequencia: ${state.phraseStreak}`;
+    elements.phraseFeedback.textContent =
+      `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
+    saveProgress();
+    renderStats();
+    renderDetailCard();
+    renderFocusRadar();
+  });
+
+  elements.nextPhrase?.addEventListener("click", () => {
+    generatePhrase();
+    renderPhrase();
   });
 
   elements.nextCloze.addEventListener("click", () => {
@@ -1590,9 +1858,18 @@ function bindControls() {
       return;
     }
     state.dictationStreak = 0;
+    markItemProgress(state.dictation.id, false);
+    markTextProgress(state.dictation.text, false);
+    const delta = applyXpDelta(xpTable.dictation.reveal);
     elements.dictationStreakLabel.textContent = `Sequencia: ${state.dictationStreak}`;
     elements.dictationFeedback.textContent =
       `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning}`;
+    elements.dictationFeedback.textContent =
+      `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning} (${formatXpDelta(delta)})`;
+    saveProgress();
+    renderStats();
+    renderDetailCard();
+    renderFocusRadar();
   });
 
   elements.nextDictation.addEventListener("click", () => {
@@ -1634,10 +1911,18 @@ function bindControls() {
     state.builder.selected = [...state.builder.chars];
     state.builder.locked = true;
     state.builderStreak = 0;
+    markItemProgress(state.builder.id, false);
+    markTextProgress(state.builder.text, false);
+    const delta = applyXpDelta(xpTable.builder.reveal);
     elements.builderFeedback.textContent =
       `${state.builder.text} • ${state.builder.romajiLabel} • ${state.builder.meaning}`;
+    elements.builderFeedback.textContent =
+      `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`;
+    saveProgress();
     renderStats();
     renderBuilder();
+    renderDetailCard();
+    renderFocusRadar();
   });
 
   elements.nextBuilder.addEventListener("click", () => {
@@ -1657,6 +1942,7 @@ function bindControls() {
       quiz: [],
       reading: [],
       context: [],
+      phrases: [],
       cloze: [],
       dictation: [],
       confusion: [],
@@ -1665,6 +1951,7 @@ function bindControls() {
     state.quizStreak = 0;
     state.readingStreak = 0;
     state.contextStreak = 0;
+    state.phraseStreak = 0;
     state.clozeStreak = 0;
     state.dictationStreak = 0;
     state.confusionStreak = 0;
@@ -1708,13 +1995,15 @@ function bindControls() {
       }
 
       markCharProgress(state.arcade.shuriken.current.id, true);
+      const delta = applyXpDelta(xpTable.arcadeShurikenHit);
       state.arcade.shuriken.score += 10 + state.arcade.shuriken.combo * 3;
       state.arcade.shuriken.combo += 1;
       state.progress.bestArcadeShuriken = Math.max(
         state.progress.bestArcadeShuriken || 0,
         state.arcade.shuriken.score
       );
-      state.arcade.shuriken.status = `${state.arcade.shuriken.current.char} dominado. Proximo arremesso.`;
+      state.arcade.shuriken.status =
+        `${state.arcade.shuriken.current.char} dominado. Proximo arremesso. (${formatXpDelta(delta)})`;
       saveProgress();
       spawnShurikenToken();
       renderArcade();
@@ -1770,6 +2059,7 @@ function refreshPracticeState() {
   elements.quizFeedback.textContent = "";
   elements.readingFeedback.textContent = "";
   elements.contextFeedback.textContent = "";
+  elements.phraseFeedback.textContent = "";
   elements.clozeFeedback.textContent = "";
   elements.dictationFeedback.textContent = "";
   elements.confusionFeedback.textContent = "";
@@ -1778,6 +2068,7 @@ function refreshPracticeState() {
   generateQuiz();
   generateReading();
   generateContext();
+  generatePhrase();
   generateCloze();
   generateDictation();
   generateConfusion();
@@ -1795,6 +2086,7 @@ function renderAll() {
   renderQuiz();
   renderReading();
   renderContext();
+  renderPhrase();
   renderCloze();
   renderDictation();
   renderConfusion();
@@ -1844,7 +2136,7 @@ function summarizeProgress(progress = state.progress) {
   const clearedGames = Number((progress.bestArcadeShuriken || 0) > 0) +
     Number((progress.bestArcadeFoods || 0) > 0) +
     Number((progress.bestArcadePairs || 0) > 0);
-  const xp = practicedEntries.length * 8 + masteredCount * 14 + clearedGames * 24;
+  const xp = Math.max(0, Number(progress.xp || 0));
   const level = Math.max(1, 1 + Math.floor(xp / 140));
   const rank = getRankTitle(xp);
 
@@ -2328,9 +2620,11 @@ function handleShurikenMiss() {
     markCharProgress(state.arcade.shuriken.current.id, false);
   }
 
+  const delta = applyXpDelta(xpTable.arcadeShurikenMiss);
   state.arcade.shuriken.combo = 0;
   state.arcade.shuriken.lives -= 1;
-  state.arcade.shuriken.status = "Passou do tempo. O mesmo tipo de leitura volta mais cedo agora.";
+  state.arcade.shuriken.status =
+    `Passou do tempo. O mesmo tipo de leitura volta mais cedo agora. (${formatXpDelta(delta)})`;
   saveProgress();
 
   if (state.arcade.shuriken.lives <= 0) {
@@ -2408,12 +2702,15 @@ function handleFoodChoice(choice) {
   }
 
   const isCorrect = choice === state.arcade.foods.current.answer;
+  const delta = applyXpDelta(isCorrect ? xpTable.arcadeFoodHit : xpTable.arcadeFoodMiss);
   if (isCorrect) {
     state.arcade.foods.score += 14;
-    state.arcade.foods.status = `${state.arcade.foods.current.romaji} acertado.`;
+    state.arcade.foods.status =
+      `${state.arcade.foods.current.romaji} acertado. (${formatXpDelta(delta)})`;
   } else {
     state.arcade.foods.lives -= 1;
-    state.arcade.foods.status = `A resposta certa era ${state.arcade.foods.current.answer}.`;
+    state.arcade.foods.status =
+      `A resposta certa era ${state.arcade.foods.current.answer}. (${formatXpDelta(delta)})`;
   }
 
   state.progress.bestArcadeFoods = Math.max(
@@ -2535,11 +2832,12 @@ function handlePairSelection(index) {
   game.moves += 1;
 
   if (first.pairId === item.pairId && first.uid !== item.uid) {
+    const delta = applyXpDelta(xpTable.arcadePairsHit);
     first.matched = true;
     item.matched = true;
     game.firstIndex = null;
     game.found += 1;
-    game.status = "Par fechado.";
+    game.status = `Par fechado. (${formatXpDelta(delta)})`;
     markCharProgress(first.pairId, true);
     if (game.found >= Math.max(1, Math.floor(game.board.length / 2))) {
       finishPairsGame(
@@ -2553,7 +2851,10 @@ function handlePairSelection(index) {
   }
 
   game.lock = true;
-  game.status = "Nao era esse par.";
+  markCharProgress(first.pairId, false);
+  markCharProgress(item.pairId, false);
+  const delta = applyXpDelta(xpTable.arcadePairsMiss);
+  game.status = `Nao era esse par. (${formatXpDelta(delta)})`;
   renderPairsGame();
 
   game.timeoutId = window.setTimeout(() => {
@@ -2626,6 +2927,7 @@ function renderStats() {
     state.progress.bestQuizStreak || 0,
     state.progress.bestReadingStreak || 0,
     state.progress.bestContextStreak || 0,
+    state.progress.bestPhraseStreak || 0,
     state.progress.bestClozeStreak || 0,
     state.progress.bestDictationStreak || 0,
     state.progress.bestConfusionStreak || 0,
@@ -2639,10 +2941,12 @@ function renderStats() {
   elements.quizStreakLabel.textContent = `Sequencia: ${state.quizStreak}`;
   elements.readingStreakLabel.textContent = `Sequencia: ${state.readingStreak}`;
   elements.contextStreakLabel.textContent = `Sequencia: ${state.contextStreak}`;
+  elements.phraseStreakLabel.textContent = `Sequencia: ${state.phraseStreak}`;
   elements.clozeStreakLabel.textContent = `Sequencia: ${state.clozeStreak}`;
   elements.dictationStreakLabel.textContent = `Sequencia: ${state.dictationStreak}`;
   elements.confusionStreakLabel.textContent = `Sequencia: ${state.confusionStreak}`;
   elements.builderStreakLabel.textContent = `Sequencia: ${state.builderStreak}`;
+  renderIdentity();
 }
 
 function renderKanaGrid() {
@@ -2793,6 +3097,9 @@ function checkQuizAnswer(choice, button) {
 
   state.quiz.answered = true;
   markCharProgress(correct.id, isCorrect);
+  const delta = applyXpDelta(
+    isCorrect ? xpTable.recognition.correct : xpTable.recognition.wrong
+  );
 
   if (isCorrect) {
     state.quizStreak += 1;
@@ -2801,11 +3108,13 @@ function checkQuizAnswer(choice, button) {
       state.quizStreak
     );
     button.classList.add("correct");
-    elements.quizFeedback.textContent = `Certo. ${correct.char} = ${correct.romaji}.`;
+    elements.quizFeedback.textContent =
+      `Certo. ${correct.char} = ${correct.romaji}. (${formatXpDelta(delta)})`;
   } else {
     state.quizStreak = 0;
     button.classList.add("wrong");
-    elements.quizFeedback.textContent = `Ainda nao. ${correct.char} = ${correct.romaji}.`;
+    elements.quizFeedback.textContent =
+      `Ainda nao. ${correct.char} = ${correct.romaji}. (${formatXpDelta(delta)})`;
   }
 
   Array.from(elements.quizOptions.children).forEach((optionButton) => {
@@ -2848,6 +3157,7 @@ function checkReading() {
 
   markItemProgress(state.reading.id, isCorrect);
   markTextProgress(state.reading.text, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.reading.correct : xpTable.reading.wrong);
 
   if (isCorrect) {
     state.readingStreak += 1;
@@ -2855,7 +3165,8 @@ function checkReading() {
       state.progress.bestReadingStreak || 0,
       state.readingStreak
     );
-    elements.readingFeedback.textContent = `Boa. ${state.reading.breakdown} = ${state.reading.answer}.`;
+    elements.readingFeedback.textContent =
+      `Boa. ${state.reading.breakdown} = ${state.reading.answer}. (${formatXpDelta(delta)})`;
   } else {
     state.readingStreak = 0;
     elements.readingFeedback.textContent =
@@ -2888,6 +3199,77 @@ function renderContext() {
   elements.contextMeaning.textContent = state.context.meaning;
 }
 
+function setPhraseCategory(category) {
+  state.phraseCategory = phraseCategories.includes(category) ? category : phraseCategories[0];
+  generatePhrase();
+  renderPhrase();
+}
+
+function getActivePhraseDeck() {
+  const fullDeck =
+    state.level === "base" ? phraseDecks.base : [...phraseDecks.base, ...phraseDecks.extended];
+  const filteredDeck = fullDeck.filter((item) => item.category === state.phraseCategory);
+  return filteredDeck.length ? filteredDeck : fullDeck;
+}
+
+function generatePhrase() {
+  const deck = getActivePhraseDeck();
+  state.phrase = pickAdaptive(deck, "phrases", (item) => item.id, (item) =>
+    computeItemWeight(item)
+  );
+  elements.phraseInput.value = "";
+  elements.phraseFeedback.textContent = "";
+}
+
+function renderPhrase() {
+  if (!state.phrase) {
+    return;
+  }
+
+  elements.phraseCategories.querySelectorAll("[data-phrase-category]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.phraseCategory === state.phraseCategory);
+  });
+
+  elements.phraseCategoryLabel.textContent = labelForPhraseCategory(state.phrase.category);
+  elements.phraseScene.textContent = state.phrase.scene;
+  elements.phraseWord.textContent = state.phrase.text;
+  elements.phraseBreakdown.textContent = state.phrase.breakdown;
+  elements.phraseMeaning.textContent = state.phrase.meaning;
+}
+
+function checkPhrase() {
+  if (!state.phrase) {
+    return;
+  }
+
+  const typed = normalizeRomanization(elements.phraseInput.value);
+  const expected = normalizeRomanization(state.phrase.answer);
+  const isCorrect = typed === expected;
+
+  markItemProgress(state.phrase.id, isCorrect);
+  markTextProgress(state.phrase.text, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.phrases.correct : xpTable.phrases.wrong);
+
+  if (isCorrect) {
+    state.phraseStreak += 1;
+    state.progress.bestPhraseStreak = Math.max(
+      state.progress.bestPhraseStreak || 0,
+      state.phraseStreak
+    );
+    elements.phraseFeedback.textContent =
+      `Boa. ${state.phrase.breakdown} = ${state.phrase.answer}. (${formatXpDelta(delta)})`;
+  } else {
+    state.phraseStreak = 0;
+    elements.phraseFeedback.textContent =
+      `Resposta: ${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
+  }
+
+  saveProgress();
+  renderStats();
+  renderDetailCard();
+  renderFocusRadar();
+}
+
 function checkContext() {
   if (!state.context) {
     return;
@@ -2899,6 +3281,7 @@ function checkContext() {
 
   markItemProgress(state.context.id, isCorrect);
   markTextProgress(state.context.text, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.context.correct : xpTable.context.wrong);
 
   if (isCorrect) {
     state.contextStreak += 1;
@@ -2907,11 +3290,11 @@ function checkContext() {
       state.contextStreak
     );
     elements.contextFeedback.textContent =
-      `Boa. ${state.context.breakdown} = ${state.context.answer}.`;
+      `Boa. ${state.context.breakdown} = ${state.context.answer}. (${formatXpDelta(delta)})`;
   } else {
     state.contextStreak = 0;
     elements.contextFeedback.textContent =
-      `Resposta: ${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning}`;
+      `Resposta: ${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`;
   }
 
   saveProgress();
@@ -2976,6 +3359,7 @@ function checkClozeAnswer(choice, button) {
   state.cloze.answered = true;
   const isCorrect = choice === state.cloze.correctChar;
   markItemProgress(state.cloze.id, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.cloze.correct : xpTable.cloze.wrong);
   const entry = charIndex.get(state.cloze.correctChar);
   if (entry) {
     markCharProgress(entry.id, isCorrect);
@@ -2988,12 +3372,13 @@ function checkClozeAnswer(choice, button) {
       state.clozeStreak
     );
     button.classList.add("correct");
-    elements.clozeFeedback.textContent = `Certo. ${state.cloze.text} = ${state.cloze.meaning}.`;
+    elements.clozeFeedback.textContent =
+      `Certo. ${state.cloze.text} = ${state.cloze.meaning}. (${formatXpDelta(delta)})`;
   } else {
     state.clozeStreak = 0;
     button.classList.add("wrong");
     elements.clozeFeedback.textContent =
-      `Era ${state.cloze.text} | ${state.cloze.answer} | ${state.cloze.meaning}.`;
+      `Era ${state.cloze.text} | ${state.cloze.answer} | ${state.cloze.meaning}. (${formatXpDelta(delta)})`;
   }
 
   Array.from(elements.clozeOptions.children).forEach((optionButton) => {
@@ -3038,6 +3423,7 @@ function checkDictation() {
 
   markItemProgress(state.dictation.id, isCorrect);
   markTextProgress(state.dictation.text, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.dictation.correct : xpTable.dictation.wrong);
 
   if (isCorrect) {
     state.dictationStreak += 1;
@@ -3046,11 +3432,11 @@ function checkDictation() {
       state.dictationStreak
     );
     elements.dictationFeedback.textContent =
-      `Boa. ${state.dictation.answer} | ${state.dictation.meaning}.`;
+      `Boa. ${state.dictation.answer} | ${state.dictation.meaning}. (${formatXpDelta(delta)})`;
   } else {
     state.dictationStreak = 0;
     elements.dictationFeedback.textContent =
-      `Resposta: ${state.dictation.text} | ${state.dictation.answer} | ${state.dictation.meaning}`;
+      `Resposta: ${state.dictation.text} | ${state.dictation.answer} | ${state.dictation.meaning} (${formatXpDelta(delta)})`;
   }
 
   saveProgress();
@@ -3101,6 +3487,7 @@ function checkConfusionAnswer(choice, button) {
   const isCorrect = choice === state.confusion.answer;
   markItemProgress(state.confusion.id, isCorrect);
   markCharsByList(state.confusion.charIds, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.confusion.correct : xpTable.confusion.wrong);
 
   if (isCorrect) {
     state.confusionStreak += 1;
@@ -3109,11 +3496,13 @@ function checkConfusionAnswer(choice, button) {
       state.confusionStreak
     );
     button.classList.add("correct");
-    elements.confusionFeedback.textContent = `Certo. ${state.confusion.note}`;
+    elements.confusionFeedback.textContent =
+      `Certo. ${state.confusion.note} (${formatXpDelta(delta)})`;
   } else {
     state.confusionStreak = 0;
     button.classList.add("wrong");
-    elements.confusionFeedback.textContent = `Quase. ${state.confusion.note}`;
+    elements.confusionFeedback.textContent =
+      `Quase. ${state.confusion.note} (${formatXpDelta(delta)})`;
   }
 
   Array.from(elements.confusionOptions.children).forEach((optionButton) => {
@@ -3216,6 +3605,7 @@ function checkBuilder() {
 
   markItemProgress(state.builder.id, isCorrect);
   markTextProgress(expected, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xpTable.builder.correct : xpTable.builder.wrong);
 
   if (isCorrect) {
     state.builderStreak += 1;
@@ -3223,7 +3613,8 @@ function checkBuilder() {
       state.progress.bestBuilderStreak || 0,
       state.builderStreak
     );
-    elements.builderFeedback.textContent = `Boa. ${expected} = ${state.builder.romajiLabel}.`;
+    elements.builderFeedback.textContent =
+      `Boa. ${expected} = ${state.builder.romajiLabel}. (${formatXpDelta(delta)})`;
   } else {
     state.builderStreak = 0;
     elements.builderFeedback.textContent =
@@ -3433,9 +3824,11 @@ function defaultProgress() {
   return {
     charStats: {},
     itemStats: {},
+    xp: 0,
     bestQuizStreak: 0,
     bestReadingStreak: 0,
     bestContextStreak: 0,
+    bestPhraseStreak: 0,
     bestClozeStreak: 0,
     bestDictationStreak: 0,
     bestConfusionStreak: 0,
@@ -3465,21 +3858,21 @@ function loadProgress(userName = state.currentUser) {
       }
 
       const legacyParsed = JSON.parse(legacyRaw);
-      return {
+      return normalizeLoadedProgress({
         ...defaultProgress(),
         ...legacyParsed,
         charStats: legacyParsed.charStats || legacyParsed.stats || {},
         itemStats: legacyParsed.itemStats || {},
-      };
+      });
     }
 
     const parsed = JSON.parse(raw);
-    return {
+    return normalizeLoadedProgress({
       ...defaultProgress(),
       ...parsed,
       charStats: parsed.charStats || parsed.stats || {},
       itemStats: parsed.itemStats || {},
-    };
+    });
   } catch {
     return defaultProgress();
   }
@@ -3777,6 +4170,17 @@ function labelForTextGroup(group) {
   return labels[group] || "Leitura longa";
 }
 
+function labelForPhraseCategory(category) {
+  const labels = {
+    saudacoes: "Saudacoes",
+    viagem: "Viagem",
+    conversa: "Conversa",
+    anime: "Anime",
+  };
+
+  return labels[category] || "Frases";
+}
+
 function buildScriptEntries(script, families) {
   return families.flatMap((familyData) =>
     familyData.items.map(([char, romaji, example]) =>
@@ -3890,6 +4294,25 @@ function createContextDecks(config) {
           })),
         ])
       ),
+    ])
+  );
+}
+
+function createPhraseDecks(config) {
+  return Object.fromEntries(
+    Object.entries(config).map(([level, items]) => [
+      level,
+      items.map(([category, text, answer, breakdown, meaning, scene], index) => ({
+        id: `phrase-${level}-${category}-${index}-${text}`,
+        category,
+        text,
+        answer,
+        breakdown: normalizeBreakdown(breakdown),
+        meaning,
+        scene,
+        chars: [...text],
+        charIds: [],
+      })),
     ])
   );
 }

@@ -1019,6 +1019,25 @@ button:disabled {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
 }
 
+.phrase-categories {
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.phrase-card {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.phrase-scene {
+  margin: 0;
+  color: var(--secondary);
+  text-align: center;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .context-word,
 .cloze-word {
   min-height: 172px;
@@ -2048,8 +2067,8 @@ button:disabled {
   }
 
   .shell {
-    width: min(100% - 1rem, 100%);
-    padding-bottom: 1.4rem;
+    width: calc(100% - 0.85rem);
+    padding: 0.65rem 0 1.2rem;
   }
 
   .hero,
@@ -2057,67 +2076,164 @@ button:disabled {
   .surface,
   .detail-card,
   .footer {
-    padding: 1rem;
+    padding: 0.95rem;
   }
 
   .hero-top {
     flex-direction: column;
     align-items: start;
+    gap: 0.8rem;
   }
 
   .hero-actions {
     width: 100%;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
+    gap: 0.6rem;
   }
 
   .profile-chip {
     min-width: 0;
+    grid-column: 1 / -1;
+    padding: 0.72rem 0.82rem;
   }
 
   .brand-lockup {
-    grid-template-columns: 4rem minmax(0, 1fr);
-    gap: 0.85rem;
+    grid-template-columns: 3.7rem minmax(0, 1fr);
+    gap: 0.75rem;
   }
 
   .brand-mark {
-    width: 4rem;
+    width: 3.7rem;
     border-radius: 1.2rem;
+  }
+
+  .brand h1 {
+    font-size: clamp(2.2rem, 11vw, 3.5rem);
+  }
+
+  .hero-copy {
+    margin-top: 0.55rem;
+    font-size: 0.96rem;
+    line-height: 1.48;
+  }
+
+  .hero-link,
+  .hero-logout {
+    min-height: 48px;
   }
 
   .hero-link {
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
+  }
+
+  .hero-strip,
+  .hero-controls,
+  .train-nav {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .hero-strip::-webkit-scrollbar,
+  .hero-controls::-webkit-scrollbar,
+  .train-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-strip {
+    display: flex;
+    grid-template-columns: none;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    scroll-snap-type: x proximity;
+  }
+
+  .hero-strip-item {
+    flex: 0 0 84%;
+    min-width: 220px;
+    min-height: 0;
+    padding: 0.9rem;
+    border-right: 0;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+    scroll-snap-align: start;
+  }
+
+  .hero-controls {
+    display: flex;
+    grid-template-columns: none;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scroll-snap-type: x proximity;
+  }
+
+  .control-block {
+    flex: 0 0 84%;
+    min-width: 250px;
+    padding: 0.85rem;
+    scroll-snap-align: start;
+  }
+
+  .control-block .segmented {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .control-block .segmented button {
+    min-width: 0;
+    width: 100%;
+    padding: 0.72rem 0.82rem;
   }
 
   .main-nav,
   .train-nav {
+    top: 0.5rem;
+    margin-top: 0.85rem;
     border-radius: 1.6rem;
     padding: 0.35rem;
   }
 
-  .main-nav-track,
+  .main-nav-track {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
   .train-nav {
     display: flex;
     flex-wrap: nowrap;
     gap: 0.45rem;
     overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
   }
 
-  .main-nav-track::-webkit-scrollbar,
-  .train-nav::-webkit-scrollbar {
-    display: none;
+  .main-nav-track button {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 0.72rem 0.25rem;
+    font-size: 0.88rem;
+    white-space: nowrap;
   }
 
-  .main-nav-track button,
   .train-nav button {
     flex: 0 0 auto;
     width: auto;
     min-width: max-content;
-    min-height: 50px;
+    min-height: 46px;
+    padding: 0.78rem 0.92rem;
+    font-size: 0.95rem;
     white-space: nowrap;
+    scroll-snap-align: start;
   }
 
   .today-metrics,
@@ -2133,6 +2249,7 @@ button:disabled {
   .today-metrics {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
   }
 
   .weak-list {
@@ -2152,8 +2269,11 @@ button:disabled {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .reading-form {
-    display: grid;
+  .today-side-head,
+  .detail-topline,
+  .quiz-head,
+  .script-head {
+    align-items: start;
   }
 
   .footer {
@@ -2163,17 +2283,19 @@ button:disabled {
 
   .train-stage {
     min-height: 0;
-    padding: 1rem;
+    padding: 0.95rem;
   }
 
   .quiz-prompt,
   .reading-word {
-    min-height: 162px;
+    min-height: 138px;
+    padding: 0.82rem;
   }
 
   .context-word,
   .cloze-word {
-    min-height: 142px;
+    min-height: 118px;
+    font-size: clamp(2.2rem, 10vw, 3.8rem);
   }
 
   .ghost-button,
@@ -2192,6 +2314,19 @@ button:disabled {
   .ranking-points {
     text-align: left;
   }
+
+  .metric strong {
+    font-size: 1.8rem;
+  }
+
+  .option-button,
+  .duel-button {
+    min-height: 64px;
+  }
+
+  .duel-button {
+    font-size: 1.9rem;
+  }
 }
 
 @media (max-width: 560px) {
@@ -2204,6 +2339,10 @@ button:disabled {
   .brand-lockup {
     grid-template-columns: 3.35rem minmax(0, 1fr);
     gap: 0.75rem;
+  }
+
+  .hero-actions {
+    grid-template-columns: 1fr 1fr;
   }
 
   .brand-mark {
@@ -2246,6 +2385,14 @@ button:disabled {
     gap: 0.6rem;
   }
 
+  .hero-strip-item {
+    flex-basis: 88%;
+  }
+
+  .control-block {
+    flex-basis: 88%;
+  }
+
   .train-stage {
     padding: 0.88rem;
   }
@@ -2266,6 +2413,7 @@ button:disabled {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .today-metrics,
   .weak-list,
   .builder-bank,
   .builder-slots {
@@ -2274,9 +2422,38 @@ button:disabled {
 }
 
 @media (max-width: 420px) {
-  .today-metrics,
+  .hero-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .main-nav-track button {
+    font-size: 0.82rem;
+    padding-inline: 0.15rem;
+  }
+
+  .train-nav button {
+    font-size: 0.9rem;
+  }
+
+  .today-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .weak-list {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .today-metrics,
+  .builder-bank,
+  .builder-slots {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-strip-item,
+  .control-block {
+    flex-basis: 92%;
   }
 }
 

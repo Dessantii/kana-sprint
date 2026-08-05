@@ -205,9 +205,9 @@
                     type="button"
                     class="route-pill"
                     data-section-target="training"
-                    data-train-target="context"
+                    data-train-target="phrases"
                   >
-                    Frases e expressoes
+                    Frases por tema
                   </button>
                   <button
                     type="button"
@@ -333,7 +333,8 @@
                 Confusos
               </button>
               <button type="button" data-train-target="reading">Curtas</button>
-              <button type="button" data-train-target="context">Longas</button>
+              <button type="button" data-train-target="context">Contexto</button>
+              <button type="button" data-train-target="phrases">Frases</button>
               <button type="button" data-train-target="cloze">Lacunas</button>
               <button type="button" data-train-target="dictation">Audio</button>
               <button type="button" data-train-target="builder">Montagem</button>
@@ -456,6 +457,63 @@
                     </button>
                     <button type="button" id="next-context" class="secondary-button">
                       Proxima leitura longa
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="phrases">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted" id="phrase-category-label">Saudacoes</span>
+                    <span class="pill" id="phrase-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <div id="phrase-categories" class="segmented phrase-categories">
+                    <button type="button" data-phrase-category="saudacoes" class="is-active">
+                      Saudacoes
+                    </button>
+                    <button type="button" data-phrase-category="viagem">Viagem</button>
+                    <button type="button" data-phrase-category="conversa">Conversa</button>
+                    <button type="button" data-phrase-category="anime">Anime</button>
+                  </div>
+
+                  <div class="context-card phrase-card">
+                    <p class="phrase-scene" id="phrase-scene">abrindo a conversa com calma</p>
+                    <div class="context-word" id="phrase-word">
+                      &#12371;&#12435;&#12395;&#12385;&#12399;&#12381;&#12425;&#12399;&#12354;&#12362;&#12356;&#12391;&#12377;
+                    </div>
+                    <p class="context-breakdown" id="phrase-breakdown">
+                      ko / n / ni / chi / ha / so / ra / ha / a / o / i / de / su
+                    </p>
+                    <p class="context-meaning" id="phrase-meaning">ola, o ceu esta azul</p>
+                  </div>
+
+                  <p class="reading-tip">
+                    Leia por blocos, imagine a situacao e responda em romaji sem correr.
+                  </p>
+
+                  <form id="phrase-form" class="reading-form">
+                    <input
+                      id="phrase-input"
+                      type="text"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="Digite em romaji"
+                    />
+                    <button type="submit" class="primary-button">Conferir</button>
+                  </form>
+
+                  <p class="feedback" id="phrase-feedback" aria-live="polite"></p>
+                  <div class="reading-actions">
+                    <button type="button" id="phrase-voice" class="ghost-button">
+                      Ouvir frase
+                    </button>
+                    <button type="button" id="show-phrase-answer" class="ghost-button">
+                      Mostrar resposta
+                    </button>
+                    <button type="button" id="next-phrase" class="secondary-button">
+                      Proxima frase
                     </button>
                   </div>
                 </div>
