@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#06090d" />
+    <title>Kana Sprint</title>
+    <link rel="icon" type="image/svg+xml" href="logo-kana-sprint.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="auth-gate" class="auth-gate is-hidden">
+      <div class="auth-card panel">
+        <div class="auth-head">
+          <p id="auth-kicker" class="eyebrow">Conta</p>
+          <h2>Entrar no Kana Sprint</h2>
+          <p id="auth-copy" class="auth-copy">
+            Entre com nome e senha. Se o Supabase estiver ativo, o seu progresso
+            fica sincronizado entre celular e PC; se nao, o app continua local.
+          </p>
+        </div>
+
+        <div id="auth-toggle" class="auth-toggle segmented">
+          <button type="button" data-auth-mode="login" class="is-active">Entrar</button>
+          <button type="button" data-auth-mode="signup">Criar perfil</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <input
+            id="login-name"
+            type="text"
+            autocomplete="username"
+            spellcheck="false"
+            placeholder="Seu nome"
+          />
+          <input
+            id="login-password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Sua senha"
+          />
+          <button type="submit" class="primary-button">Entrar</button>
+        </form>
+
+        <form id="signup-form" class="auth-form is-hidden">
+          <input
+            id="signup-name"
+            type="text"
+            autocomplete="username"
+            spellcheck="false"
+            placeholder="Escolha um nome"
+          />
+          <input
+            id="signup-password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Crie uma senha"
+          />
+          <button type="submit" class="primary-button">Criar perfil</button>
+        </form>
+
+        <p id="auth-feedback" class="auth-feedback" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="shell">
+      <header class="hero panel">
+        <div class="hero-top">
+          <div class="brand-lockup">
+            <a class="brand-mark" href="#main-nav" aria-label="Kana Sprint">
+              <img src="logo-kana-sprint.svg" alt="" width="72" height="72" />
+            </a>
+
+            <div class="brand">
+              <p class="eyebrow">Treino de hiragana e katakana</p>
+              <h1>Kana Sprint</h1>
+              <p class="hero-copy">
+                Um app de treino mais direto: veja, responda, corrija e siga para
+                o proximo bloco sem se perder no layout.
+              </p>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <div class="profile-chip">
+              <span class="control-label">Perfil</span>
+              <strong id="profile-name">Visitante</strong>
+              <span id="profile-rank" class="profile-rank">Novato</span>
+              <span id="sync-badge" class="sync-badge is-local">Modo local</span>
+            </div>
+
+            <a class="hero-link" href="#main-nav">Ir para os modos</a>
+            <button type="button" id="logout-button" class="ghost-button hero-logout">
+              Sair
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-strip" aria-label="Fluxo principal">
+          <div class="hero-strip-item">
+            <span class="hero-strip-index">01</span>
+            <strong>Reconhecer</strong>
+            <p>Olhe o kana, responda rapido e siga.</p>
+          </div>
+          <div class="hero-strip-item">
+            <span class="hero-strip-index">02</span>
+            <strong>Ler</strong>
+            <p>Junte sons curtos sem depender de romaji.</p>
+          </div>
+          <div class="hero-strip-item">
+            <span class="hero-strip-index">03</span>
+            <strong>Fixar</strong>
+            <p>Errou mais? O sistema devolve esse ponto.</p>
+          </div>
+        </div>
+
+        <div class="hero-controls">
+          <div class="control-block">
+            <span class="control-label">Escrita</span>
+            <div class="segmented" id="script-toggle">
+              <button type="button" data-script="hiragana" class="is-active">
+                Hiragana
+              </button>
+              <button type="button" data-script="katakana">Katakana</button>
+              <button type="button" data-script="mixed">Misto</button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <span class="control-label">Nivel</span>
+            <div class="segmented" id="level-toggle">
+              <button type="button" data-level="base" class="is-active">
+                Base
+              </button>
+              <button type="button" data-level="extended">
+                Base + vozes
+              </button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <span class="control-label">Foco</span>
+            <div class="segmented" id="focus-toggle">
+              <button type="button" data-focus="all" class="is-active">
+                Tudo
+              </button>
+              <button type="button" data-focus="weak">Meus erros</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <nav id="main-nav" class="main-nav panel" aria-label="Areas principais">
+        <div id="section-nav" class="main-nav-track">
+          <button type="button" data-section-target="today" class="is-active">
+            Hoje
+          </button>
+          <button type="button" data-section-target="study">Estudo</button>
+          <button type="button" data-section-target="training">Treino</button>
+          <button type="button" data-section-target="arcade" data-arcade-screen="hub">Arcade</button>
+          <button type="button" data-section-target="review">Revisao</button>
+        </div>
+      </nav>
+
+      <main class="page">
+        <section class="workspace-section is-active" data-section-panel="today">
+          <article class="today-panel panel">
+            <div class="today-main">
+              <p class="eyebrow">Hoje</p>
+              <h2>Seu proximo bloco ja esta pronto</h2>
+              <p class="today-note">
+                O sistema diminui a repeticao do que voce ja dominou e traz de
+                volta com mais frequencia o que ainda trava.
+              </p>
+
+              <div class="today-actions">
+                <button
+                  type="button"
+                  class="primary-button"
+                  data-section-target="training"
+                  data-train-target="recognition"
+                >
+                  Comecar treino adaptativo
+                </button>
+                <button type="button" id="activate-weak-focus" class="ghost-button">
+                  Treinar meus erros
+                </button>
+              </div>
+
+              <div class="today-route">
+                <p class="route-label">Sequencia sugerida</p>
+                <div class="route-track">
+                  <button type="button" class="route-pill" data-section-target="study">
+                    Mapa rapido
+                  </button>
+                  <button
+                    type="button"
+                    class="route-pill"
+                    data-section-target="training"
+                    data-train-target="reading"
+                  >
+                    Leitura curta
+                  </button>
+                  <button
+                    type="button"
+                    class="route-pill"
+                    data-section-target="training"
+                    data-train-target="context"
+                  >
+                    Frases e expressoes
+                  </button>
+                  <button
+                    type="button"
+                    class="route-pill"
+                    data-section-target="arcade"
+                    data-arcade-screen="games"
+                  >
+                    Jogos
+                  </button>
+                  <button type="button" class="route-pill" data-section-target="review">
+                    Revisar confusos
+                  </button>
+                </div>
+              </div>
+
+              <div class="today-metrics">
+                <div class="metric">
+                  <span class="metric-label">Kana praticados</span>
+                  <strong id="studied-count">0</strong>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Dominados</span>
+                  <strong id="mastered-count">0</strong>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Em revisao</span>
+                  <strong id="review-count">0</strong>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Melhor serie</span>
+                  <strong id="best-streak">0</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="today-side">
+              <div class="today-side-head">
+                <span class="pill muted" id="focus-mode-label">Foco atual: tudo</span>
+                <span class="pill" id="weak-count-label">0 kana em revisao</span>
+              </div>
+
+              <p class="today-summary" id="focus-summary">
+                Conforme voce pratica, o sistema passa a puxar mais o que ainda
+                nao esta estavel.
+              </p>
+
+              <div id="weak-list" class="weak-list"></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="workspace-section" data-section-panel="study">
+          <article class="surface panel">
+            <div class="surface-head">
+              <div>
+                <p class="eyebrow">Estudo</p>
+                <h2>Mapa por familia</h2>
+              </div>
+              <p class="surface-note">
+                Use a largura da tela para comparar formas e revisar um kana com
+                contexto, som e exemplo.
+              </p>
+            </div>
+
+            <div class="study-layout">
+              <div id="kana-grid" class="kana-grid"></div>
+
+              <aside class="detail-card">
+                <div class="detail-topline">
+                  <span id="detail-script" class="pill">Hiragana</span>
+                  <span id="detail-family" class="pill muted">Linha A</span>
+                </div>
+                <div class="detail-character" id="detail-character">&#12354;</div>
+                <button type="button" id="reveal-card" class="secondary-button">
+                  Mostrar resposta
+                </button>
+
+                <div class="detail-answer is-hidden" id="detail-answer">
+                  <p class="answer-romaji" id="detail-romaji">a</p>
+                  <p class="answer-formula" id="detail-formula">Vogal pura</p>
+                  <p class="answer-note" id="detail-note"></p>
+                  <p class="answer-example" id="detail-example"></p>
+                  <p class="answer-stats" id="detail-stats"></p>
+                </div>
+
+                <div class="detail-actions">
+                  <button type="button" id="detail-voice" class="ghost-button">
+                    Ouvir
+                  </button>
+                  <button type="button" id="prev-card" class="ghost-button">
+                    Anterior
+                  </button>
+                  <button type="button" id="random-card" class="ghost-button">
+                    Aleatorio
+                  </button>
+                  <button type="button" id="next-card" class="ghost-button">
+                    Proximo
+                  </button>
+                </div>
+              </aside>
+            </div>
+          </article>
+        </section>
+
+        <section class="workspace-section" data-section-panel="training">
+          <article class="surface panel">
+            <div class="surface-head">
+              <div>
+                <p class="eyebrow">Treino</p>
+                <h2>Um bloco por vez</h2>
+              </div>
+              <p class="surface-note">
+                O palco principal mostra um unico tipo de esforco por vez para
+                manter foco visual e mental.
+              </p>
+            </div>
+
+            <div id="train-nav" class="train-nav">
+              <button type="button" data-train-target="recognition" class="is-active">
+                Reflexo
+              </button>
+              <button type="button" data-train-target="confusion">
+                Confusos
+              </button>
+              <button type="button" data-train-target="reading">Curtas</button>
+              <button type="button" data-train-target="context">Longas</button>
+              <button type="button" data-train-target="cloze">Lacunas</button>
+              <button type="button" data-train-target="dictation">Audio</button>
+              <button type="button" data-train-target="builder">Montagem</button>
+            </div>
+
+            <div class="train-stage">
+              <section class="train-panel is-active" data-train-panel="recognition">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted" id="quiz-mode-label">Kana para som</span>
+                    <span class="pill" id="quiz-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <p class="quiz-instruction" id="quiz-instruction">
+                    Qual e o som deste caractere?
+                  </p>
+                  <div class="quiz-prompt" id="quiz-prompt">&#12373;</div>
+                  <div class="quiz-options" id="quiz-options"></div>
+                  <p class="feedback" id="quiz-feedback" aria-live="polite"></p>
+                  <button type="button" id="next-quiz" class="primary-button">
+                    Nova rodada
+                  </button>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="confusion">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted">Olho no detalhe</span>
+                    <span class="pill" id="confusion-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <p class="quiz-instruction" id="confusion-instruction">
+                    Qual deles representa este som?
+                  </p>
+                  <div class="quiz-prompt" id="confusion-prompt">shi</div>
+                  <div class="duel-options" id="confusion-options"></div>
+                  <p class="feedback" id="confusion-feedback" aria-live="polite"></p>
+                  <button type="button" id="next-confusion" class="primary-button">
+                    Novo duelo
+                  </button>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="reading">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted">Palavras curtas</span>
+                    <span class="pill" id="reading-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <div class="reading-word" id="reading-word">&#12373;&#12363;&#12394;</div>
+                  <p class="reading-tip">
+                    Leia em voz baixa antes de digitar. Se errar, descubra qual
+                    kana te travou.
+                  </p>
+
+                  <form id="reading-form" class="reading-form">
+                    <input
+                      id="reading-input"
+                      type="text"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="Digite em romaji"
+                    />
+                    <button type="submit" class="primary-button">Conferir</button>
+                  </form>
+
+                  <p class="feedback" id="reading-feedback" aria-live="polite"></p>
+                  <div class="reading-actions">
+                    <button type="button" id="reading-voice" class="ghost-button">
+                      Ouvir palavra
+                    </button>
+                    <button type="button" id="show-reading-answer" class="ghost-button">
+                      Mostrar resposta
+                    </button>
+                    <button type="button" id="next-reading" class="secondary-button">
+                      Proxima leitura
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="context">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted" id="context-kind-label">Expressao</span>
+                    <span class="pill" id="context-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <div class="context-card">
+                    <div class="context-word" id="context-word">&#12371;&#12435;&#12395;&#12385;&#12399;</div>
+                    <p class="context-breakdown" id="context-breakdown">ko / n / ni / chi / ha</p>
+                    <p class="context-meaning" id="context-meaning">ola</p>
+                  </div>
+
+                  <p class="reading-tip">
+                    Aqui entram palavras maiores, expressoes e frases simples.
+                    Leia por blocos e depois junte.
+                  </p>
+
+                  <form id="context-form" class="reading-form">
+                    <input
+                      id="context-input"
+                      type="text"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="Digite em romaji"
+                    />
+                    <button type="submit" class="primary-button">Conferir</button>
+                  </form>
+
+                  <p class="feedback" id="context-feedback" aria-live="polite"></p>
+                  <div class="reading-actions">
+                    <button type="button" id="context-voice" class="ghost-button">
+                      Ouvir item
+                    </button>
+                    <button type="button" id="show-context-answer" class="ghost-button">
+                      Mostrar resposta
+                    </button>
+                    <button type="button" id="next-context" class="secondary-button">
+                      Proxima leitura longa
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="cloze">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted" id="cloze-kind-label">Lacuna</span>
+                    <span class="pill" id="cloze-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <p class="quiz-instruction" id="cloze-instruction">
+                    Qual kana completa este item?
+                  </p>
+
+                  <div class="context-card">
+                    <div class="cloze-word" id="cloze-word">&#12371;&#12435;_&#12385;&#12399;</div>
+                    <p class="context-meaning" id="cloze-meaning">ola</p>
+                  </div>
+
+                  <div class="quiz-options" id="cloze-options"></div>
+                  <p class="feedback" id="cloze-feedback" aria-live="polite"></p>
+                  <button type="button" id="next-cloze" class="secondary-button">
+                    Nova lacuna
+                  </button>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="dictation">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted" id="dictation-kind-label">Audio para romaji</span>
+                    <span class="pill" id="dictation-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <div class="listening-card">
+                    <p class="listening-note">
+                      Escute primeiro. O texto fica escondido ate voce conferir.
+                    </p>
+                    <p class="context-meaning" id="dictation-meaning">bom dia</p>
+                  </div>
+
+                  <form id="dictation-form" class="reading-form">
+                    <input
+                      id="dictation-input"
+                      type="text"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="Digite em romaji"
+                    />
+                    <button type="submit" class="primary-button">Conferir</button>
+                  </form>
+
+                  <p class="feedback" id="dictation-feedback" aria-live="polite"></p>
+                  <div class="reading-actions">
+                    <button type="button" id="dictation-voice" class="ghost-button">
+                      Ouvir item
+                    </button>
+                    <button type="button" id="show-dictation-answer" class="ghost-button">
+                      Mostrar resposta
+                    </button>
+                    <button type="button" id="next-dictation" class="secondary-button">
+                      Novo audio
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="train-panel" data-train-panel="builder">
+                <div class="exercise">
+                  <div class="quiz-head">
+                    <span class="pill muted">Palavra para kana</span>
+                    <span class="pill" id="builder-streak-label">Sequencia: 0</span>
+                  </div>
+
+                  <div class="builder-target">
+                    <p class="builder-romaji" id="builder-romaji">sa / ka / na</p>
+                    <p class="builder-meaning" id="builder-meaning">peixe</p>
+                  </div>
+
+                  <div class="builder-slots" id="builder-slots"></div>
+                  <div class="builder-bank" id="builder-bank"></div>
+                  <p class="feedback" id="builder-feedback" aria-live="polite"></p>
+
+                  <div class="reading-actions">
+                    <button type="button" id="builder-voice" class="ghost-button">
+                      Ouvir alvo
+                    </button>
+                    <button type="button" id="builder-undo" class="ghost-button">
+                      Apagar ultimo
+                    </button>
+                    <button type="button" id="builder-clear" class="ghost-button">
+                      Limpar
+                    </button>
+                    <button type="button" id="show-builder-answer" class="ghost-button">
+                      Mostrar resposta
+                    </button>
+                    <button type="button" id="next-builder" class="secondary-button">
+                      Nova palavra
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </article>
+        </section>
+
+        <section class="workspace-section" data-section-panel="review">
+          <article class="surface panel">
+            <div class="surface-head">
+              <div>
+                <p class="eyebrow">Revisao</p>
+                <h2>Erros e confusoes num so lugar</h2>
+              </div>
+              <p class="surface-note">
+                Quando quiser revisar de forma acionavel, tudo importante fica
+                reunido aqui.
+              </p>
+            </div>
+
+            <div class="review-layout">
+              <div class="review-main">
+                <div class="today-side-head">
+                  <span class="pill muted" id="focus-mode-label-review">Foco atual: tudo</span>
+                  <span class="pill" id="weak-count-label-review">0 kana em revisao</span>
+                </div>
+
+                <p class="today-summary" id="focus-summary-review">
+                  Conforme voce pratica, este painel mostra o que ainda precisa
+                  de repeticao.
+                </p>
+
+                <div id="weak-list-review" class="weak-list"></div>
+
+                <div class="review-actions">
+                  <button type="button" id="clear-focus" class="ghost-button">
+                    Voltar para tudo
+                  </button>
+                </div>
+              </div>
+
+              <div class="review-side">
+                <div id="confusion-grid" class="confusion-grid"></div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="workspace-section" data-section-panel="arcade">
+          <article class="arcade-shell" id="arcade-shell">
+            <aside class="arcade-sidebar" aria-label="Arcade">
+              <button type="button" class="arcade-rail-button is-active" data-arcade-screen="hub">
+                <span class="arcade-rail-icon">IN</span>
+              </button>
+              <button type="button" class="arcade-rail-button" data-arcade-screen="cards">
+                <span class="arcade-rail-icon">CD</span>
+              </button>
+              <button type="button" class="arcade-rail-button" data-arcade-screen="games">
+                <span class="arcade-rail-icon">JG</span>
+              </button>
+              <button type="button" class="arcade-rail-button" data-arcade-screen="records">
+                <span class="arcade-rail-icon">XP</span>
+              </button>
+            </aside>
+
+            <div class="arcade-main">
+              <header class="arcade-topbar">
+                <div>
+                  <p class="arcade-kicker">Viajante</p>
+                  <h2>Kana Arcade</h2>
+                </div>
+
+                <div class="arcade-badges">
+                  <div class="arcade-badge">
+                    <span class="arcade-badge-label">LV.</span>
+                    <strong id="arcade-level">1</strong>
+                  </div>
+                  <div class="arcade-badge">
+                    <span class="arcade-badge-label">XP</span>
+                    <strong id="arcade-xp">0</strong>
+                  </div>
+                  <div class="arcade-badge">
+                    <span class="arcade-badge-label">ESTRELAS</span>
+                    <strong id="arcade-stars">0/5</strong>
+                  </div>
+                </div>
+              </header>
+
+              <div class="arcade-viewport">
+                <section class="arcade-panel is-active" data-arcade-panel="hub">
+                  <div class="arcade-continue-banner">
+                    <div>
+                      <p class="arcade-mini-kicker">Continue de onde parou</p>
+                      <h3 id="arcade-last-mode">Shuriken no Kana</h3>
+                    </div>
+                    <button type="button" class="retro-cta" id="arcade-last-launch">
+                      Jogar
+                    </button>
+                  </div>
+
+                  <div class="arcade-hub-grid">
+                    <article class="arcade-route-card">
+                      <p class="arcade-mini-kicker">Prefeitura 1 - Shikoku</p>
+                      <h3 id="arcade-feature-title">Kagawa</h3>
+                      <p id="arcade-feature-copy">
+                        Saudações, leitura e mini jogos para firmar o kana sem ficar repetitivo.
+                      </p>
+                      <div class="arcade-route-divider"></div>
+                      <div id="arcade-feature-progress" class="arcade-progress-track"></div>
+                      <p class="arcade-route-meta" id="arcade-feature-meta">0/3 jogos vencidos</p>
+                    </article>
+
+                    <article class="arcade-preview-card">
+                      <div class="arcade-section-head">
+                        <div>
+                          <p class="arcade-mini-kicker">Caderneta</p>
+                          <h3>Expressoes do dia</h3>
+                        </div>
+                        <button type="button" class="retro-link" data-arcade-screen="cards">
+                          Abrir
+                        </button>
+                      </div>
+                      <div id="arcade-card-preview" class="arcade-preview-list"></div>
+                    </article>
+                  </div>
+
+                    <article class="arcade-catalog-inline">
+                    <div class="arcade-section-head">
+                      <div>
+                        <p class="arcade-mini-kicker">Jogos novos</p>
+                        <h3>Modos liberados</h3>
+                      </div>
+                      <button type="button" class="retro-link" data-arcade-screen="games">
+                        Ver todos
+                      </button>
+                    </div>
+                    <div id="arcade-games-preview" class="arcade-game-list"></div>
+                  </article>
+                </section>
+
+                <section class="arcade-panel" data-arcade-panel="cards">
+                  <div class="arcade-section-head arcade-section-head-block">
+                    <div>
+                      <p class="arcade-mini-kicker">Cartas</p>
+                      <h3>Frases e expressoes</h3>
+                    </div>
+                    <p class="arcade-copy">
+                      Use esta caderneta para revisar leituras maiores com audio, exemplo e barra de progresso.
+                    </p>
+                  </div>
+
+                  <div id="arcade-card-list" class="arcade-card-list"></div>
+                </section>
+
+                <section class="arcade-panel" data-arcade-panel="games">
+                  <div class="arcade-section-head arcade-section-head-block">
+                    <div>
+                      <p class="arcade-mini-kicker">Jogos</p>
+                      <h3>Mais minigames e modos extras</h3>
+                    </div>
+                    <p class="arcade-copy">
+                      Escolha um modo. Cada jogo trabalha uma habilidade diferente para nao ficar repetitivo.
+                    </p>
+                  </div>
+
+                  <div id="arcade-game-list" class="arcade-game-list arcade-game-list-full"></div>
+                </section>
+
+                <section class="arcade-panel" data-arcade-panel="records">
+                  <div class="arcade-section-head arcade-section-head-block">
+                    <div>
+                      <p class="arcade-mini-kicker">Ficha</p>
+                      <h3>Seus recordes</h3>
+                    </div>
+                    <p class="arcade-copy">
+                      Aqui ficam os melhores resultados dos cartuchos e o resumo do seu progresso geral.
+                    </p>
+                  </div>
+
+                  <div class="arcade-record-stack">
+                    <div id="arcade-record-grid" class="arcade-record-grid"></div>
+
+                    <article class="arcade-ranking-card">
+                      <div class="arcade-section-head">
+                        <div>
+                          <p id="ranking-kicker" class="arcade-mini-kicker">Ranking local</p>
+                          <h3 id="ranking-heading">Perfis deste navegador</h3>
+                        </div>
+                        <span class="pill muted" id="ranking-count">0 perfis</span>
+                      </div>
+
+                      <div id="arcade-ranking-list" class="arcade-ranking-list"></div>
+                    </article>
+                  </div>
+                </section>
+
+                <section class="arcade-panel" data-arcade-panel="shuriken">
+                  <div class="arcade-game-shell">
+                    <div class="retro-game-head">
+                      <button type="button" class="retro-back" data-arcade-screen="games">
+                        Voltar
+                      </button>
+                      <div>
+                        <h3>Shuriken no Kana</h3>
+                        <p>O ninja arremessa um kana. Digite o romaji antes de tocar o chao.</p>
+                      </div>
+                    </div>
+
+                    <div class="retro-stat-grid">
+                      <div class="retro-stat-box">
+                        <span>Pontos</span>
+                        <strong id="shuriken-score">0</strong>
+                      </div>
+                      <div class="retro-stat-box">
+                        <span>Combo</span>
+                        <strong id="shuriken-combo">x0</strong>
+                      </div>
+                      <div class="retro-stat-box">
+                        <span>Recorde</span>
+                        <strong id="shuriken-record">0</strong>
+                      </div>
+                    </div>
+
+                    <div class="shuriken-arena" id="shuriken-arena">
+                      <div class="shuriken-ninja">🥷</div>
+                      <div class="shuriken-hearts" id="shuriken-lives">♥♥♥</div>
+                      <div class="shuriken-token" id="shuriken-token">&#12399;</div>
+                    </div>
+
+                    <div class="retro-input-row">
+                      <input
+                        id="shuriken-input"
+                        type="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="digite o romaji..."
+                      />
+                      <button type="button" class="retro-cta" id="shuriken-start">
+                        Comecar
+                      </button>
+                    </div>
+                    <p class="retro-status" id="shuriken-status">Kana caindo em 3 vidas. O ritmo acelera quando voce engata combo.</p>
+                  </div>
+                </section>
+
+                <section class="arcade-panel" data-arcade-panel="foods">
+                  <div class="arcade-game-shell">
+                    <div class="retro-game-head">
+                      <button type="button" class="retro-back" data-arcade-screen="games">
+                        Voltar
+                      </button>
+                      <div>
+                        <h3>Pratos do Japao</h3>
+                        <p>Veja o prato e escolha a traducao correta. Ganhe pontos antes do tempo acabar.</p>
+                      </div>
+                    </div>
+
+                    <div class="retro-stat-grid">
+                      <div class="retro-stat-box">
+                        <span>Pontos</span>
+                        <strong id="food-score">0</strong>
+                      </div>
+                      <div class="retro-stat-box">
+                        <span>Vidas</span>
+                        <strong id="food-lives">♥♥♥</strong>
+                      </div>
+                      <div class="retro-stat-box">
+                        <span>Tempo</span>
+                        <strong id="food-time">60s</strong>
+                      </div>
+                    </div>
+
+                    <div class="retro-food-card">
+                      <div class="retro-food-emoji" id="food-emoji">🍜</div>
+                      <h3 id="food-kana">&#12521;&#12540;&#12513;&#12531;</h3>
+                      <p id="food-romaji">raamen</p>
+                      <span id="food-region" class="retro-food-region">Tokyo</span>
+                    </div>
+
+                    <div id="food-options" class="retro-choice-list"></div>
+                    <div class="retro-input-row retro-input-row-split">
+                      <button type="button" class="retro-cta" id="food-start">Comecar</button>
+                      <strong class="retro-inline-record">Recorde: <span id="food-record">0</span></strong>
+                    </div>
+                    <p class="retro-status" id="food-status">Sessao de 60 segundos com 3 vidas.</p>
+                  </div>
+                </section>
+
+                <section class="arcade-panel" data-arcade-panel="pairs">
+                  <div class="arcade-game-shell">
+                    <div class="retro-game-head">
+                      <button type="button" class="retro-back" data-arcade-screen="games">
+                        Voltar
+                      </button>
+                      <div>
+                        <h3>Parear Kana</h3>
+                        <p>Encontre os pares entre kana e romaji o mais rapido possivel.</p>
+                      </div>
+                    </div>
+
+                    <div class="retro-stat-grid">
+                      <div class="retro-stat-box">
+                        <span>Jogadas</span>
+                        <strong id="pairs-moves">0</strong>
+                      </div>
+                      <div class="retro-stat-box">
+                        <span>Pares</span>
+                        <strong id="pairs-found">0/8</strong>
+                      </div>
+                      <div class="retro-stat-box">
+                        <span>Tempo</span>
+                        <strong id="pairs-time">0s</strong>
+                      </div>
+                    </div>
+
+                    <div id="pairs-grid" class="pairs-grid"></div>
+                    <div class="retro-input-row retro-input-row-split">
+                      <button type="button" class="retro-cta" id="pairs-start">Embaralhar</button>
+                      <strong class="retro-inline-record">Recorde: <span id="pairs-record">-</span></strong>
+                    </div>
+                    <p class="retro-status" id="pairs-status">Monte 8 pares usando o alfabeto ativo do topo.</p>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p id="storage-copy">
+          Progresso salvo neste navegador. Se o audio nao falar, o resto do
+          treino continua normalmente.
+        </p>
+        <button type="button" id="reset-progress" class="ghost-button">
+          Zerar progresso salvo
+        </button>
+      </footer>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
