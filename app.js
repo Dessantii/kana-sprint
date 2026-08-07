@@ -108,7 +108,43 @@ const trackCatalog = [
 ];
 const coreTrainModes = ["recognition", "reading", "context", "phrases"];
 const extraTrainModes = ["confusion", "cloze", "dictation", "builder"];
+const allTrainModes = [...coreTrainModes, ...extraTrainModes];
 const quickSessionDurations = [2, 5, 10];
+const trainBlockTarget = 8;
+const trainModeMeta = {
+  recognition: {
+    label: "Reflexo",
+    copy: "Reconheca o caractere ou o som correto com rapidez e clareza.",
+  },
+  reading: {
+    label: "Curtas",
+    copy: "Leia palavras menores por blocos e descubra onde a leitura ainda trava.",
+  },
+  context: {
+    label: "Contexto",
+    copy: "Junte palavras maiores e expressoes sem perder a leitura por partes.",
+  },
+  phrases: {
+    label: "Frases",
+    copy: "Pratique frases por situacao para conectar leitura, ritmo e vocabulario.",
+  },
+  confusion: {
+    label: "Confusos",
+    copy: "Separe pares parecidos e force o olho a notar o detalhe que diferencia.",
+  },
+  cloze: {
+    label: "Lacunas",
+    copy: "Complete a estrutura do item pelo kana que esta faltando no meio da leitura.",
+  },
+  dictation: {
+    label: "Audio",
+    copy: "Escute primeiro e transforme o som em romaji antes de confirmar a resposta.",
+  },
+  builder: {
+    label: "Montagem",
+    copy: "Monte a palavra kana por kana para reforcar forma, ordem e som ao mesmo tempo.",
+  },
+};
 
 const xpTable = {
   recognition: { correct: 10, wrong: -6 },
@@ -916,6 +952,12 @@ function createQuickSessionState() {
   };
 }
 
+function createTrainBlockMap() {
+  return Object.fromEntries(
+    allTrainModes.map((mode) => [mode, { answered: 0, correct: 0, wrong: 0 }])
+  );
+}
+
 function createShurikenState() {
   return {
     running: false,
@@ -1127,6 +1169,19 @@ const elements = {
   activityTimeline: document.getElementById("activity-timeline"),
   trackGrid: document.getElementById("track-grid"),
   toggleTrainNav: document.getElementById("toggle-train-nav"),
+  trainRailKicker: document.getElementById("train-rail-kicker"),
+  trainRailTitle: document.getElementById("train-rail-title"),
+  trainRailCopy: document.getElementById("train-rail-copy"),
+  trainRailFocus: document.getElementById("train-rail-focus"),
+  trainRailSession: document.getElementById("train-rail-session"),
+  trainRailStatus: document.getElementById("train-rail-status"),
+  trainRailAnswered: document.getElementById("train-rail-answered"),
+  trainRailCorrect: document.getElementById("train-rail-correct"),
+  trainRailWrong: document.getElementById("train-rail-wrong"),
+  trainRailAccuracy: document.getElementById("train-rail-accuracy"),
+  trainRailProgressFill: document.getElementById("train-rail-progress-fill"),
+  trainBlockReset: document.getElementById("train-block-reset"),
+  trainBlockNext: document.getElementById("train-block-next"),
   resetProgress: document.getElementById("reset-progress"),
   arcadeShell: document.getElementById("arcade-shell"),
   arcadeLevel: document.getElementById("arcade-level"),
@@ -1236,6 +1291,7 @@ const state = {
   progress: defaultProgress(),
   arcade: createArcadeState(),
   quickSession: createQuickSessionState(),
+  trainBlocks: createTrainBlockMap(),
   recent: {
     quiz: [],
     reading: [],
@@ -2487,6 +2543,7 @@ function bindControls() {
       state.section = "training";
       renderSectionNav();
       renderTrainNav();
+      renderTrainRail();
     });
   }
 
@@ -2529,6 +2586,19 @@ function bindControls() {
   elements.toggleTrainNav?.addEventListener("click", () => {
     state.trainNavExpanded = !state.trainNavExpanded;
     renderTrainNav();
+  });
+
+  elements.trainBlockReset?.addEventListener("click", () => {
+    resetTrainBlock();
+  });
+
+  elements.trainBlockNext?.addEventListener("click", () => {
+    const target = elements.trainBlockNext?.dataset.trainTarget;
+    if (!target) {
+      return;
+    }
+    setSection("training", target);
+    renderAll();
   });
 
   elements.sessionDurationToggle?.addEventListener("click", (event) => {
@@ -2865,6 +2935,7 @@ function bindControls() {
     state.dictationStreak = 0;
     state.confusionStreak = 0;
     state.builderStreak = 0;
+    state.trainBlocks = createTrainBlockMap();
     await saveProgress({ immediate: true });
     refreshPracticeState();
   });
@@ -2981,6 +3052,14 @@ function bindEnhancedActivityHandlers() {
         success: false,
         wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
       });
+      recordTrainBlockAttempt("reading", false);
+      queueMicrotask(() => {
+        setFeedbackMessage(
+          elements.readingFeedback,
+          "info",
+          `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`
+        );
+      });
       elements.readingStreakLabel.textContent = `Sequencia: ${state.readingStreak}`;
       elements.readingFeedback.textContent =
         `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`;
@@ -3009,6 +3088,14 @@ function bindEnhancedActivityHandlers() {
         success: false,
         wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
         phraseBlock: true,
+      });
+      recordTrainBlockAttempt("context", false);
+      queueMicrotask(() => {
+        setFeedbackMessage(
+          elements.contextFeedback,
+          "info",
+          `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`
+        );
       });
       elements.contextStreakLabel.textContent = `Sequencia: ${state.contextStreak}`;
       elements.contextFeedback.textContent =
@@ -3039,6 +3126,14 @@ function bindEnhancedActivityHandlers() {
         wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
         phraseBlock: true,
       });
+      recordTrainBlockAttempt("phrases", false);
+      queueMicrotask(() => {
+        setFeedbackMessage(
+          elements.phraseFeedback,
+          "info",
+          `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`
+        );
+      });
       elements.phraseStreakLabel.textContent = `Sequencia: ${state.phraseStreak}`;
       elements.phraseFeedback.textContent =
         `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
@@ -3067,6 +3162,14 @@ function bindEnhancedActivityHandlers() {
         success: false,
         wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
         phraseBlock: true,
+      });
+      recordTrainBlockAttempt("dictation", false);
+      queueMicrotask(() => {
+        setFeedbackMessage(
+          elements.dictationFeedback,
+          "info",
+          `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning} (${formatXpDelta(delta)})`
+        );
       });
       elements.dictationStreakLabel.textContent = `Sequencia: ${state.dictationStreak}`;
       elements.dictationFeedback.textContent =
@@ -3097,6 +3200,14 @@ function bindEnhancedActivityHandlers() {
         xpDelta: delta,
         success: false,
         wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+      });
+      recordTrainBlockAttempt("builder", false);
+      queueMicrotask(() => {
+        setFeedbackMessage(
+          elements.builderFeedback,
+          "info",
+          `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`
+        );
       });
       elements.builderFeedback.textContent =
         `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`;
@@ -3160,6 +3271,7 @@ function setSection(section, trainTarget) {
   }
   renderSectionNav();
   renderTrainNav();
+  renderTrainRail();
   renderArcade();
 }
 
@@ -3177,14 +3289,14 @@ function setFocusMode(mode) {
 
 function refreshPracticeState() {
   stopArcadeGames();
-  elements.quizFeedback.textContent = "";
-  elements.readingFeedback.textContent = "";
-  elements.contextFeedback.textContent = "";
-  elements.phraseFeedback.textContent = "";
-  elements.clozeFeedback.textContent = "";
-  elements.dictationFeedback.textContent = "";
-  elements.confusionFeedback.textContent = "";
-  elements.builderFeedback.textContent = "";
+  clearFeedbackMessage(elements.quizFeedback);
+  clearFeedbackMessage(elements.readingFeedback);
+  clearFeedbackMessage(elements.contextFeedback);
+  clearFeedbackMessage(elements.phraseFeedback);
+  clearFeedbackMessage(elements.clozeFeedback);
+  clearFeedbackMessage(elements.dictationFeedback);
+  clearFeedbackMessage(elements.confusionFeedback);
+  clearFeedbackMessage(elements.builderFeedback);
   ensureSelection();
   generateQuiz();
   generateReading();
@@ -3201,6 +3313,7 @@ function renderAll() {
   ensureDailyState();
   renderSectionNav();
   renderTrainNav();
+  renderTrainRail();
   renderAudioControls();
   renderInstallChrome();
   renderIdentity();
@@ -3255,6 +3368,153 @@ function renderTrainNav() {
   document.querySelectorAll("[data-train-panel]").forEach((panel) => {
     panel.classList.toggle("is-active", panel.dataset.trainPanel === state.trainMode);
   });
+}
+
+function getTrainBlock(mode = state.trainMode) {
+  if (!state.trainBlocks || typeof state.trainBlocks !== "object") {
+    state.trainBlocks = createTrainBlockMap();
+  }
+
+  if (!state.trainBlocks[mode]) {
+    state.trainBlocks[mode] = { answered: 0, correct: 0, wrong: 0 };
+  }
+
+  return state.trainBlocks[mode];
+}
+
+function resetTrainBlock(mode = state.trainMode) {
+  state.trainBlocks[mode] = { answered: 0, correct: 0, wrong: 0 };
+  renderTrainRail();
+}
+
+function recordTrainBlockAttempt(mode, success) {
+  const block = getTrainBlock(mode);
+  block.answered += 1;
+  block.correct += Number(success === true);
+  block.wrong += Number(success === false);
+  renderTrainRail();
+}
+
+function getTrainModeStreak(mode = state.trainMode) {
+  switch (mode) {
+    case "recognition":
+      return state.quizStreak;
+    case "reading":
+      return state.readingStreak;
+    case "context":
+      return state.contextStreak;
+    case "phrases":
+      return state.phraseStreak;
+    case "confusion":
+      return state.confusionStreak;
+    case "cloze":
+      return state.clozeStreak;
+    case "dictation":
+      return state.dictationStreak;
+    case "builder":
+      return state.builderStreak;
+    default:
+      return 0;
+  }
+}
+
+function getNextTrainMode(mode = state.trainMode) {
+  const index = allTrainModes.indexOf(mode);
+  if (index === -1) {
+    return allTrainModes[0];
+  }
+  return allTrainModes[(index + 1) % allTrainModes.length];
+}
+
+function clearFeedbackMessage(element) {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = "";
+  element.classList.remove("has-message", "is-success", "is-danger", "is-info");
+}
+
+function setFeedbackMessage(element, tone, message) {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.classList.remove("is-success", "is-danger", "is-info");
+  element.classList.add("has-message");
+
+  if (tone === "success") {
+    element.classList.add("is-success");
+    return;
+  }
+
+  if (tone === "danger") {
+    element.classList.add("is-danger");
+    return;
+  }
+
+  element.classList.add("is-info");
+}
+
+function renderTrainRail() {
+  if (!elements.trainRailTitle) {
+    return;
+  }
+
+  const meta = trainModeMeta[state.trainMode] || trainModeMeta.recognition;
+  const block = getTrainBlock(state.trainMode);
+  const progressCount = Math.min(block.answered, trainBlockTarget);
+  const remaining = Math.max(0, trainBlockTarget - progressCount);
+  const accuracy = block.answered ? Math.round((block.correct / block.answered) * 100) : 0;
+  const nextMode = getNextTrainMode(state.trainMode);
+  const nextMeta = trainModeMeta[nextMode] || trainModeMeta.recognition;
+  const completed = progressCount >= trainBlockTarget;
+  const focusLabel = state.focus === "weak" ? "Foco: meus erros" : "Foco: tudo";
+  const sessionLabel = state.quickSession.active
+    ? `Sprint ${formatSessionClock(Math.max(0, state.quickSession.endsAt - Date.now()))}`
+    : "Sessao livre";
+
+  if (elements.trainRailKicker) {
+    elements.trainRailKicker.textContent = "Bloco atual";
+  }
+  elements.trainRailTitle.textContent = meta.label;
+  elements.trainRailCopy.textContent = meta.copy;
+  if (elements.trainRailFocus) {
+    elements.trainRailFocus.textContent = focusLabel;
+  }
+  if (elements.trainRailSession) {
+    elements.trainRailSession.textContent = sessionLabel;
+  }
+  if (elements.trainRailStatus) {
+    elements.trainRailStatus.textContent = completed
+      ? `Bloco fechado ${progressCount}/${trainBlockTarget}`
+      : `Faltam ${remaining} respostas`;
+  }
+  if (elements.trainRailAnswered) {
+    elements.trainRailAnswered.textContent = `${progressCount}/${trainBlockTarget}`;
+  }
+  if (elements.trainRailCorrect) {
+    elements.trainRailCorrect.textContent = String(block.correct);
+  }
+  if (elements.trainRailWrong) {
+    elements.trainRailWrong.textContent = String(block.wrong);
+  }
+  if (elements.trainRailAccuracy) {
+    elements.trainRailAccuracy.textContent = `${accuracy}%`;
+  }
+  if (elements.trainRailProgressFill) {
+    elements.trainRailProgressFill.style.width = `${Math.min(100, (progressCount / trainBlockTarget) * 100)}%`;
+  }
+  if (elements.trainBlockReset) {
+    elements.trainBlockReset.disabled = block.answered === 0;
+  }
+  if (elements.trainBlockNext) {
+    elements.trainBlockNext.textContent = completed
+      ? `Seguir para ${nextMeta.label}`
+      : `Trocar para ${nextMeta.label}`;
+    elements.trainBlockNext.dataset.trainTarget = nextMode;
+  }
 }
 
 function summarizeProgress(progress = state.progress) {
@@ -4934,6 +5194,8 @@ function renderQuickSession(summary = summarizeProgress(), reviewSnapshot = buil
     elements.sessionSummaryNext.textContent = summaryData.nextButton;
     elements.sessionSummaryNext.dataset.todayAction = summaryData.nextActionId || "";
   }
+
+  renderTrainRail();
 }
 
 function startQuickSession() {
@@ -5184,7 +5446,7 @@ function generateQuiz() {
       : buildKanaOptions(pool, correct);
 
   state.quiz = { correct, promptType, options, answered: false };
-  elements.quizFeedback.textContent = "";
+  clearFeedbackMessage(elements.quizFeedback);
 }
 
 function renderQuiz() {
@@ -5232,6 +5494,7 @@ function checkQuizAnswer(choice, button) {
     success: isCorrect,
     wasDue: reviewMeta.wasDue,
   });
+  recordTrainBlockAttempt("recognition", isCorrect);
 
   if (isCorrect) {
     state.quizStreak += 1;
@@ -5240,13 +5503,19 @@ function checkQuizAnswer(choice, button) {
       state.quizStreak
     );
     button.classList.add("correct");
-    elements.quizFeedback.textContent =
-      `Certo. ${correct.char} = ${correct.romaji}. (${formatXpDelta(delta)})`;
+    setFeedbackMessage(
+      elements.quizFeedback,
+      "success",
+      `Certo. ${correct.char} = ${correct.romaji}. (${formatXpDelta(delta)})`
+    );
   } else {
     state.quizStreak = 0;
     button.classList.add("wrong");
-    elements.quizFeedback.textContent =
-      `Ainda nao. ${correct.char} = ${correct.romaji}. (${formatXpDelta(delta)})`;
+    setFeedbackMessage(
+      elements.quizFeedback,
+      "danger",
+      `Ainda nao. ${correct.char} = ${correct.romaji}. (${formatXpDelta(delta)})`
+    );
   }
 
   Array.from(elements.quizOptions.children).forEach((optionButton) => {
@@ -5268,7 +5537,7 @@ function generateReading() {
     computeItemWeight(item)
   );
   elements.readingInput.value = "";
-  elements.readingFeedback.textContent = "";
+  clearFeedbackMessage(elements.readingFeedback);
 }
 
 function renderReading() {
@@ -5295,6 +5564,16 @@ function checkReading() {
     success: isCorrect,
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
   });
+  recordTrainBlockAttempt("reading", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.readingFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Boa. ${state.reading.breakdown} = ${state.reading.answer}. (${formatXpDelta(delta)})`
+        : `Resposta: ${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""}`
+    );
+  });
 
   if (isCorrect) {
     state.readingStreak += 1;
@@ -5302,8 +5581,11 @@ function checkReading() {
       state.progress.bestReadingStreak || 0,
       state.readingStreak
     );
-    elements.readingFeedback.textContent =
-      `Boa. ${state.reading.breakdown} = ${state.reading.answer}. (${formatXpDelta(delta)})`;
+    setFeedbackMessage(
+      elements.readingFeedback,
+      "success",
+      `Boa. ${state.reading.breakdown} = ${state.reading.answer}. (${formatXpDelta(delta)})`
+    );
   } else {
     state.readingStreak = 0;
     elements.readingFeedback.textContent =
@@ -5322,7 +5604,7 @@ function generateContext() {
     computeItemWeight(item)
   );
   elements.contextInput.value = "";
-  elements.contextFeedback.textContent = "";
+  clearFeedbackMessage(elements.contextFeedback);
 }
 
 function renderContext() {
@@ -5354,7 +5636,7 @@ function generatePhrase() {
     computeItemWeight(item)
   );
   elements.phraseInput.value = "";
-  elements.phraseFeedback.textContent = "";
+  clearFeedbackMessage(elements.phraseFeedback);
 }
 
 function renderPhrase() {
@@ -5390,6 +5672,16 @@ function checkPhrase() {
     success: isCorrect,
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
     phraseBlock: true,
+  });
+  recordTrainBlockAttempt("phrases", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.phraseFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Boa. ${state.phrase.breakdown} = ${state.phrase.answer}. (${formatXpDelta(delta)})`
+        : `Resposta: ${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`
+    );
   });
 
   if (isCorrect) {
@@ -5429,6 +5721,16 @@ function checkContext() {
     success: isCorrect,
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
     phraseBlock: true,
+  });
+  recordTrainBlockAttempt("context", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.contextFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Boa. ${state.context.breakdown} = ${state.context.answer}. (${formatXpDelta(delta)})`
+        : `Resposta: ${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`
+    );
   });
 
   if (isCorrect) {
@@ -5474,7 +5776,7 @@ function generateCloze() {
     answered: false,
   };
 
-  elements.clozeFeedback.textContent = "";
+  clearFeedbackMessage(elements.clozeFeedback);
 }
 
 function renderCloze() {
@@ -5518,6 +5820,16 @@ function checkClozeAnswer(choice, button) {
     success: isCorrect,
     wasDue: itemMeta.wasDue || Boolean(charMeta?.wasDue),
   });
+  recordTrainBlockAttempt("cloze", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.clozeFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Certo. ${state.cloze.text} = ${state.cloze.meaning}. (${formatXpDelta(delta)})`
+        : `Era ${state.cloze.text} | ${state.cloze.answer} | ${state.cloze.meaning}. (${formatXpDelta(delta)})`
+    );
+  });
 
   if (isCorrect) {
     state.clozeStreak += 1;
@@ -5554,7 +5866,7 @@ function generateDictation() {
     computeItemWeight(item)
   );
   elements.dictationInput.value = "";
-  elements.dictationFeedback.textContent = "";
+  clearFeedbackMessage(elements.dictationFeedback);
 }
 
 function renderDictation() {
@@ -5583,6 +5895,16 @@ function checkDictation() {
     success: isCorrect,
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
     phraseBlock: true,
+  });
+  recordTrainBlockAttempt("dictation", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.dictationFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Boa. ${state.dictation.answer} | ${state.dictation.meaning}. (${formatXpDelta(delta)})`
+        : `Resposta: ${state.dictation.text} | ${state.dictation.answer} | ${state.dictation.meaning} (${formatXpDelta(delta)})`
+    );
   });
 
   if (isCorrect) {
@@ -5615,7 +5937,7 @@ function generateConfusion() {
     options: shuffle([...card.options]),
     answered: false,
   };
-  elements.confusionFeedback.textContent = "";
+  clearFeedbackMessage(elements.confusionFeedback);
 }
 
 function renderConfusion() {
@@ -5652,6 +5974,16 @@ function checkConfusionAnswer(choice, button) {
     xpDelta: delta,
     success: isCorrect,
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  });
+  recordTrainBlockAttempt("confusion", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.confusionFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Certo. ${state.confusion.note} (${formatXpDelta(delta)})`
+        : `Quase. ${state.confusion.note} (${formatXpDelta(delta)})`
+    );
   });
 
   if (isCorrect) {
@@ -5703,7 +6035,7 @@ function generateBuilder() {
     locked: false,
   };
 
-  elements.builderFeedback.textContent = "";
+  clearFeedbackMessage(elements.builderFeedback);
 }
 
 function renderBuilder() {
@@ -5775,6 +6107,16 @@ function checkBuilder() {
     xpDelta: delta,
     success: isCorrect,
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  });
+  recordTrainBlockAttempt("builder", isCorrect);
+  queueMicrotask(() => {
+    setFeedbackMessage(
+      elements.builderFeedback,
+      isCorrect ? "success" : "danger",
+      isCorrect
+        ? `Boa. ${expected} = ${state.builder.romajiLabel}. (${formatXpDelta(delta)})`
+        : `Era ${expected} - ${state.builder.romajiLabel} - ${state.builder.meaning}.`
+    );
   });
 
   if (isCorrect) {

@@ -1518,6 +1518,103 @@ button:disabled {
   border: 1px solid var(--line);
 }
 
+.train-rail {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.014)),
+    var(--surface-strong);
+}
+
+.train-rail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.train-rail-head h3 {
+  margin: 0.18rem 0 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+}
+
+.train-rail-copy {
+  margin: 0.66rem 0 0;
+  max-width: 58ch;
+  color: var(--secondary);
+  line-height: 1.58;
+}
+
+.train-rail-pills,
+.train-rail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.train-rail-pills {
+  justify-content: end;
+}
+
+.train-rail-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.train-rail-metric {
+  padding: 0.9rem 0.95rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.train-rail-metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.train-rail-metric strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--surface-contrast);
+  font-size: 1.65rem;
+  line-height: 1.04;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+}
+
+.train-rail-progress {
+  margin-top: 0.95rem;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.train-rail-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+  box-shadow: 0 8px 18px rgba(121, 186, 255, 0.22);
+}
+
+.train-rail-actions {
+  margin-top: 0.95rem;
+}
+
 .train-stage {
   min-height: 520px;
   padding: 1.15rem;
@@ -1549,7 +1646,44 @@ button:disabled {
 }
 
 .feedback {
-  min-height: 1.6rem;
+  min-height: 0;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--secondary);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.feedback.has-message {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feedback.is-success {
+  border-color: rgba(64, 217, 138, 0.24);
+  background: rgba(64, 217, 138, 0.12);
+  color: #d7ffe8;
+}
+
+.feedback.is-danger {
+  border-color: rgba(255, 124, 105, 0.22);
+  background: rgba(255, 124, 105, 0.12);
+  color: #ffe1dc;
+}
+
+.feedback.is-info {
+  border-color: rgba(121, 186, 255, 0.22);
+  background: rgba(121, 186, 255, 0.12);
+  color: #d9ecff;
 }
 
 .quiz-prompt,
@@ -2873,6 +3007,7 @@ button:disabled {
 
   .today-side-head,
   .today-focus-head,
+  .train-rail-head,
   .detail-topline,
   .quiz-head,
   .script-head {
@@ -2903,6 +3038,10 @@ button:disabled {
 
   .session-summary-actions {
     display: grid;
+  }
+
+  .train-rail-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .today-plan-button,
@@ -2942,7 +3081,9 @@ button:disabled {
 
   .session-banner-side .ghost-button,
   .session-summary-actions .ghost-button,
-  .session-summary-actions .primary-button {
+  .session-summary-actions .primary-button,
+  .train-rail-actions .ghost-button,
+  .train-rail-actions .secondary-button {
     width: 100%;
   }
 
