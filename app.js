@@ -26,6 +26,83 @@ const rankLadder = [
 ];
 
 const phraseCategories = ["saudacoes", "viagem", "conversa", "anime"];
+const activityWindowDays = 7;
+const reviewBucketOrder = ["new", "learning", "today", "tomorrow", "later"];
+const reviewBucketMeta = {
+  new: { label: "Novo", note: "ainda nao visto" },
+  learning: { label: "Aprendendo", note: "voltando cedo" },
+  today: { label: "Hoje", note: "vence agora" },
+  tomorrow: { label: "Amanha", note: "vence em breve" },
+  later: { label: "Depois", note: "mais estavel" },
+};
+const dailyMissionCatalog = [
+  {
+    id: "answers",
+    label: "10 acertos",
+    description: "Resolva dez respostas corretas em qualquer modo.",
+    target: 10,
+  },
+  {
+    id: "review",
+    label: "6 revisoes vencendo",
+    description: "Enfrente blocos que estavam pedindo volta hoje.",
+    target: 6,
+  },
+  {
+    id: "phrases",
+    label: "3 blocos de contexto",
+    description: "Passe por frases, audio ou contexto real.",
+    target: 3,
+  },
+  {
+    id: "arcade",
+    label: "1 minigame",
+    description: "Entre em pelo menos um jogo do arcade.",
+    target: 1,
+  },
+];
+const trackCatalog = [
+  {
+    id: "foundations",
+    label: "Fundamentos",
+    note: "familias base e reflexo de kana",
+    action: { section: "training", trainTarget: "recognition" },
+  },
+  {
+    id: "saudacoes",
+    label: "Saudacoes",
+    note: "cumprimentos e entradas de conversa",
+    category: "saudacoes",
+    action: { section: "training", trainTarget: "phrases", phraseCategory: "saudacoes" },
+  },
+  {
+    id: "viagem",
+    label: "Viagem",
+    note: "placas, deslocamento e situacoes de rota",
+    category: "viagem",
+    action: { section: "training", trainTarget: "phrases", phraseCategory: "viagem" },
+  },
+  {
+    id: "conversa",
+    label: "Conversa",
+    note: "trocas do cotidiano e respostas naturais",
+    category: "conversa",
+    action: { section: "training", trainTarget: "phrases", phraseCategory: "conversa" },
+  },
+  {
+    id: "anime",
+    label: "Anime",
+    note: "falas mais longas e ritmo de cena",
+    category: "anime",
+    action: { section: "training", trainTarget: "phrases", phraseCategory: "anime" },
+  },
+  {
+    id: "arcade",
+    label: "Arcade",
+    note: "reflexo, memoria e leitura sob pressao",
+    action: { section: "arcade", arcadeScreen: "games" },
+  },
+];
 
 const xpTable = {
   recognition: { correct: 10, wrong: -6 },
@@ -877,14 +954,22 @@ const elements = {
   scriptToggle: document.getElementById("script-toggle"),
   levelToggle: document.getElementById("level-toggle"),
   focusToggle: document.getElementById("focus-toggle"),
+  audioRateToggle: document.getElementById("audio-rate-toggle"),
+  audioRepeatToggle: document.getElementById("audio-repeat-toggle"),
   profileName: document.getElementById("profile-name"),
   profileRank: document.getElementById("profile-rank"),
   syncBadge: document.getElementById("sync-badge"),
   logoutButton: document.getElementById("logout-button"),
+  installApp: document.getElementById("install-app"),
+  installStatus: document.getElementById("install-status"),
   studiedCount: document.getElementById("studied-count"),
   masteredCount: document.getElementById("mastered-count"),
   reviewCount: document.getElementById("review-count"),
   bestStreak: document.getElementById("best-streak"),
+  dailyStreakPill: document.getElementById("daily-streak-pill"),
+  todayDuePill: document.getElementById("today-due-pill"),
+  todayMissionList: document.getElementById("today-mission-list"),
+  todayReviewBuckets: document.getElementById("today-review-buckets"),
   kanaGrid: document.getElementById("kana-grid"),
   detailScript: document.getElementById("detail-script"),
   detailFamily: document.getElementById("detail-family"),
@@ -984,6 +1069,20 @@ const elements = {
   activateWeakFocus: document.getElementById("activate-weak-focus"),
   clearFocus: document.getElementById("clear-focus"),
   confusionGrid: document.getElementById("confusion-grid"),
+  reviewDueSummary: document.getElementById("review-due-summary"),
+  reviewPriorityList: document.getElementById("review-priority-list"),
+  progressRankPill: document.getElementById("progress-rank-pill"),
+  progressXpTotal: document.getElementById("progress-xp-total"),
+  progressWeeklyXp: document.getElementById("progress-weekly-xp"),
+  progressDailyStreak: document.getElementById("progress-daily-streak"),
+  progressDueTotal: document.getElementById("progress-due-total"),
+  progressMissionStatus: document.getElementById("progress-mission-status"),
+  progressMissionList: document.getElementById("progress-mission-list"),
+  progressReviewBuckets: document.getElementById("progress-review-buckets"),
+  progressReviewList: document.getElementById("progress-review-list"),
+  activitySummary: document.getElementById("activity-summary"),
+  activityTimeline: document.getElementById("activity-timeline"),
+  trackGrid: document.getElementById("track-grid"),
   resetProgress: document.getElementById("reset-progress"),
   arcadeShell: document.getElementById("arcade-shell"),
   arcadeLevel: document.getElementById("arcade-level"),
@@ -1004,6 +1103,8 @@ const elements = {
   rankingKicker: document.getElementById("ranking-kicker"),
   rankingHeading: document.getElementById("ranking-heading"),
   rankingCount: document.getElementById("ranking-count"),
+  rankingViewToggle: document.getElementById("ranking-view-toggle"),
+  rankingSeasonNote: document.getElementById("ranking-season-note"),
   shurikenArena: document.getElementById("shuriken-arena"),
   shurikenToken: document.getElementById("shuriken-token"),
   shurikenInput: document.getElementById("shuriken-input"),
@@ -1040,6 +1141,8 @@ const runtime = {
   saveTimer: 0,
   savePromise: Promise.resolve(),
   leaderboardPromise: null,
+  installPrompt: null,
+  serviceWorkerReady: false,
 };
 
 const state = {
@@ -1054,6 +1157,9 @@ const state = {
   authMode: "login",
   storageMode: "local",
   syncStatus: "local",
+  audioRate: 0.9,
+  audioRepeat: 1,
+  rankingView: "overall",
   sharedRanking: [],
   leaderboardLoadedAt: 0,
   selectedId: null,
@@ -1092,6 +1198,7 @@ void bootstrap();
 
 async function bootstrap() {
   bindControls();
+  registerPwaFeatures();
   await initializeRuntime();
 
   if (isCloudMode()) {
@@ -1112,9 +1219,11 @@ async function bootstrap() {
     }
   }
   ensureSelection();
+  ensureDailyState();
   generateQuiz();
   generateReading();
   generateContext();
+  generatePhrase();
   generateCloze();
   generateDictation();
   generateConfusion();
@@ -1186,6 +1295,50 @@ async function loadRuntimeConfig() {
   }
 }
 
+function registerPwaFeatures() {
+  renderInstallChrome();
+
+  if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .then(() => {
+        runtime.serviceWorkerReady = true;
+        renderInstallChrome();
+      })
+      .catch((error) => {
+        console.error("Nao foi possivel registrar o service worker.", error);
+      });
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    runtime.installPrompt = event;
+    renderInstallChrome();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    runtime.installPrompt = null;
+    renderInstallChrome();
+  });
+
+  window.matchMedia?.("(display-mode: standalone)")?.addEventListener("change", () => {
+    renderInstallChrome();
+  });
+}
+
+async function requestInstallPrompt() {
+  if (!runtime.installPrompt) {
+    renderInstallChrome();
+    return;
+  }
+
+  const promptEvent = runtime.installPrompt;
+  runtime.installPrompt = null;
+  await promptEvent.prompt();
+  await promptEvent.userChoice.catch(() => null);
+  renderInstallChrome();
+}
+
 function isCloudMode() {
   return runtime.mode === "cloud" && Boolean(runtime.bridge);
 }
@@ -1196,10 +1349,24 @@ function normalizeLoadedProgress(progress) {
     ...(progress || {}),
     charStats: progress?.charStats || progress?.stats || {},
     itemStats: progress?.itemStats || {},
+    charReview: progress?.charReview || {},
+    itemReview: progress?.itemReview || {},
+    daily: progress?.daily || createDailyProgressState(),
+    activityLog: Array.isArray(progress?.activityLog) ? progress.activityLog : [],
   };
   normalized.xp = Number.isFinite(Number(normalized.xp))
     ? Math.max(0, Number(normalized.xp))
     : computeLegacyXp(normalized);
+  normalized.completedStreakDays = Number.isFinite(Number(normalized.completedStreakDays))
+    ? Math.max(0, Number(normalized.completedStreakDays))
+    : 0;
+  normalized.bestDailyStreak = Number.isFinite(Number(normalized.bestDailyStreak))
+    ? Math.max(0, Number(normalized.bestDailyStreak))
+    : 0;
+  normalized.daily = normalizeDailyProgress(normalized.daily);
+  normalized.activityLog = normalizeActivityLog(normalized.activityLog);
+  normalized.charReview = normalizeReviewMap(normalized.charReview);
+  normalized.itemReview = normalizeReviewMap(normalized.itemReview);
   return normalized;
 }
 
@@ -1233,6 +1400,194 @@ function applyXpDelta(delta) {
 
 function formatXpDelta(delta) {
   return `${delta > 0 ? "+" : ""}${delta} XP`;
+}
+
+function getDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function shiftDateKey(dateKey, days) {
+  const date = new Date(`${dateKey}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return getDateKey(date);
+}
+
+function createDailyProgressState(dateKey = getDateKey()) {
+  return {
+    dateKey,
+    missions: {},
+  };
+}
+
+function normalizeDailyProgress(daily) {
+  return {
+    ...createDailyProgressState(daily?.dateKey || getDateKey()),
+    ...(daily || {}),
+    missions: daily?.missions && typeof daily.missions === "object" ? daily.missions : {},
+  };
+}
+
+function normalizeActivityLog(log) {
+  return [...new Map(
+    (Array.isArray(log) ? log : [])
+      .filter((entry) => entry && typeof entry.dateKey === "string")
+      .map((entry) => [
+        entry.dateKey,
+        {
+          dateKey: entry.dateKey,
+          xp: Number.isFinite(Number(entry.xp)) ? Number(entry.xp) : 0,
+          correct: Number.isFinite(Number(entry.correct)) ? Number(entry.correct) : 0,
+          wrong: Number.isFinite(Number(entry.wrong)) ? Number(entry.wrong) : 0,
+          sessions: Number.isFinite(Number(entry.sessions)) ? Number(entry.sessions) : 0,
+        },
+      ])
+  ).values()]
+    .sort((left, right) => left.dateKey.localeCompare(right.dateKey))
+    .slice(-30);
+}
+
+function normalizeReviewRecord(record) {
+  return {
+    dueAt: Number.isFinite(Number(record?.dueAt)) ? Number(record.dueAt) : 0,
+    intervalHours: Number.isFinite(Number(record?.intervalHours))
+      ? Math.max(0, Number(record.intervalHours))
+      : 0,
+    ease: Number.isFinite(Number(record?.ease)) ? Number(record.ease) : 2.15,
+    streak: Number.isFinite(Number(record?.streak)) ? Math.max(0, Number(record.streak)) : 0,
+    lapses: Number.isFinite(Number(record?.lapses)) ? Math.max(0, Number(record.lapses)) : 0,
+    lastSeenAt: Number.isFinite(Number(record?.lastSeenAt)) ? Number(record.lastSeenAt) : 0,
+    lastResult: record?.lastResult === "success" ? "success" : "miss",
+  };
+}
+
+function normalizeReviewMap(reviewMap) {
+  return Object.fromEntries(
+    Object.entries(reviewMap || {}).map(([id, record]) => [id, normalizeReviewRecord(record)])
+  );
+}
+
+function getMissionValue(daily, missionId) {
+  return Math.max(0, Number(daily?.missions?.[missionId] || 0));
+}
+
+function areDailyMissionsComplete(daily = state.progress.daily) {
+  return dailyMissionCatalog.every((mission) => getMissionValue(daily, mission.id) >= mission.target);
+}
+
+function getDisplayDailyStreak(progress = state.progress) {
+  return Math.max(0, Number(progress.completedStreakDays || 0)) +
+    Number(areDailyMissionsComplete(progress.daily));
+}
+
+function ensureDailyState(progress = state.progress) {
+  const todayKey = getDateKey();
+  progress.daily = normalizeDailyProgress(progress.daily);
+
+  if (progress.daily.dateKey === todayKey) {
+    return progress.daily;
+  }
+
+  const previousDaily = progress.daily;
+  const yesterdayKey = shiftDateKey(todayKey, -1);
+
+  if (areDailyMissionsComplete(previousDaily)) {
+    progress.completedStreakDays =
+      previousDaily.dateKey === yesterdayKey
+        ? Math.max(1, Number(progress.completedStreakDays || 0) + 1)
+        : 1;
+    progress.bestDailyStreak = Math.max(
+      Number(progress.bestDailyStreak || 0),
+      Number(progress.completedStreakDays || 0)
+    );
+  } else {
+    progress.completedStreakDays = 0;
+  }
+
+  progress.daily = createDailyProgressState(todayKey);
+  return progress.daily;
+}
+
+function updateActivityLog({ xpDelta = 0, success = null } = {}) {
+  const dateKey = getDateKey();
+  const existing = state.progress.activityLog.find((entry) => entry.dateKey === dateKey);
+  const target = existing || {
+    dateKey,
+    xp: 0,
+    correct: 0,
+    wrong: 0,
+    sessions: 0,
+  };
+
+  target.xp += Number.isFinite(Number(xpDelta)) ? Number(xpDelta) : 0;
+  target.correct += Number(success === true);
+  target.wrong += Number(success === false);
+  target.sessions += 1;
+
+  if (!existing) {
+    state.progress.activityLog.push(target);
+  }
+
+  state.progress.activityLog = normalizeActivityLog(state.progress.activityLog);
+}
+
+function recordActivityEvent({
+  xpDelta = 0,
+  success = null,
+  wasDue = false,
+  phraseBlock = false,
+  arcadeStart = false,
+} = {}) {
+  const daily = ensureDailyState();
+
+  if (success === true) {
+    daily.missions.answers = getMissionValue(daily, "answers") + 1;
+  }
+
+  if (wasDue) {
+    daily.missions.review = getMissionValue(daily, "review") + 1;
+  }
+
+  if (phraseBlock) {
+    daily.missions.phrases = getMissionValue(daily, "phrases") + 1;
+  }
+
+  if (arcadeStart) {
+    daily.missions.arcade = Math.max(1, getMissionValue(daily, "arcade") + 1);
+  }
+
+  if (success !== null || xpDelta !== 0) {
+    updateActivityLog({ xpDelta, success });
+  }
+
+  state.progress.bestDailyStreak = Math.max(
+    Number(state.progress.bestDailyStreak || 0),
+    getDisplayDailyStreak()
+  );
+}
+
+function getActivityWindowEntries(log = state.progress.activityLog) {
+  const source = new Map(normalizeActivityLog(log).map((entry) => [entry.dateKey, entry]));
+  const days = [];
+  for (let offset = activityWindowDays - 1; offset >= 0; offset -= 1) {
+    const dateKey = shiftDateKey(getDateKey(), -offset);
+    days.push(
+      source.get(dateKey) || {
+        dateKey,
+        xp: 0,
+        correct: 0,
+        wrong: 0,
+        sessions: 0,
+      }
+    );
+  }
+  return days;
+}
+
+function getWeeklyXp(log = state.progress.activityLog) {
+  return getActivityWindowEntries(log).reduce((sum, entry) => sum + Number(entry.xp || 0), 0);
 }
 
 function setSyncStatus(status) {
@@ -1694,6 +2049,28 @@ function bindControls() {
   });
   elements.clearFocus.addEventListener("click", () => setFocusMode("all"));
 
+  elements.audioRateToggle?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-audio-rate]");
+    if (!button) {
+      return;
+    }
+    state.audioRate = Number(button.dataset.audioRate) || 0.9;
+    renderAudioControls();
+  });
+
+  elements.audioRepeatToggle?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-audio-repeat]");
+    if (!button) {
+      return;
+    }
+    state.audioRepeat = Number(button.dataset.audioRepeat) || 1;
+    renderAudioControls();
+  });
+
+  elements.installApp?.addEventListener("click", async () => {
+    await requestInstallPrompt();
+  });
+
   elements.revealCard.addEventListener("click", () => {
     state.revealCard = !state.revealCard;
     renderDetailCard();
@@ -1966,6 +2343,23 @@ function bindControls() {
     });
   }
 
+  elements.trackGrid?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-track-id]");
+    if (!button) {
+      return;
+    }
+    launchTrack(button.dataset.trackId);
+  });
+
+  elements.rankingViewToggle?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-ranking-view]");
+    if (!button) {
+      return;
+    }
+    state.rankingView = button.dataset.rankingView === "weekly" ? "weekly" : "overall";
+    renderRanking();
+  });
+
   if (elements.logoutButton) {
     elements.logoutButton.addEventListener("click", () => {
       logoutCurrentUser();
@@ -2027,6 +2421,192 @@ function bindControls() {
   if (elements.pairsStart) {
     elements.pairsStart.addEventListener("click", () => startPairsGame());
   }
+
+  bindEnhancedActivityHandlers();
+}
+
+function bindEnhancedActivityHandlers() {
+  elements.showReadingAnswer?.addEventListener(
+    "click",
+    (event) => {
+      if (!state.reading) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      state.readingStreak = 0;
+      const itemMeta = markItemProgress(state.reading.id, false);
+      const charMetas = markTextProgress(state.reading.text, false);
+      const delta = applyXpDelta(xpTable.reading.reveal);
+      recordActivityEvent({
+        xpDelta: delta,
+        success: false,
+        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+      });
+      elements.readingStreakLabel.textContent = `Sequencia: ${state.readingStreak}`;
+      elements.readingFeedback.textContent =
+        `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`;
+      saveProgress();
+      renderStats();
+      renderDetailCard();
+      renderFocusRadar();
+    },
+    true
+  );
+
+  elements.showContextAnswer?.addEventListener(
+    "click",
+    (event) => {
+      if (!state.context) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      state.contextStreak = 0;
+      const itemMeta = markItemProgress(state.context.id, false);
+      const charMetas = markTextProgress(state.context.text, false);
+      const delta = applyXpDelta(xpTable.context.reveal);
+      recordActivityEvent({
+        xpDelta: delta,
+        success: false,
+        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+        phraseBlock: true,
+      });
+      elements.contextStreakLabel.textContent = `Sequencia: ${state.contextStreak}`;
+      elements.contextFeedback.textContent =
+        `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`;
+      saveProgress();
+      renderStats();
+      renderDetailCard();
+      renderFocusRadar();
+    },
+    true
+  );
+
+  elements.showPhraseAnswer?.addEventListener(
+    "click",
+    (event) => {
+      if (!state.phrase) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      state.phraseStreak = 0;
+      const itemMeta = markItemProgress(state.phrase.id, false);
+      const charMetas = markTextProgress(state.phrase.text, false);
+      const delta = applyXpDelta(xpTable.phrases.reveal);
+      recordActivityEvent({
+        xpDelta: delta,
+        success: false,
+        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+        phraseBlock: true,
+      });
+      elements.phraseStreakLabel.textContent = `Sequencia: ${state.phraseStreak}`;
+      elements.phraseFeedback.textContent =
+        `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
+      saveProgress();
+      renderStats();
+      renderDetailCard();
+      renderFocusRadar();
+    },
+    true
+  );
+
+  elements.showDictationAnswer?.addEventListener(
+    "click",
+    (event) => {
+      if (!state.dictation) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      state.dictationStreak = 0;
+      const itemMeta = markItemProgress(state.dictation.id, false);
+      const charMetas = markTextProgress(state.dictation.text, false);
+      const delta = applyXpDelta(xpTable.dictation.reveal);
+      recordActivityEvent({
+        xpDelta: delta,
+        success: false,
+        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+        phraseBlock: true,
+      });
+      elements.dictationStreakLabel.textContent = `Sequencia: ${state.dictationStreak}`;
+      elements.dictationFeedback.textContent =
+        `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning} (${formatXpDelta(delta)})`;
+      saveProgress();
+      renderStats();
+      renderDetailCard();
+      renderFocusRadar();
+    },
+    true
+  );
+
+  elements.showBuilderAnswer?.addEventListener(
+    "click",
+    (event) => {
+      if (!state.builder) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      state.builder.selected = [...state.builder.chars];
+      state.builder.locked = true;
+      state.builderStreak = 0;
+      const itemMeta = markItemProgress(state.builder.id, false);
+      const charMetas = markTextProgress(state.builder.text, false);
+      const delta = applyXpDelta(xpTable.builder.reveal);
+      recordActivityEvent({
+        xpDelta: delta,
+        success: false,
+        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+      });
+      elements.builderFeedback.textContent =
+        `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`;
+      saveProgress();
+      renderStats();
+      renderBuilder();
+      renderDetailCard();
+      renderFocusRadar();
+    },
+    true
+  );
+
+  elements.shurikenInput?.addEventListener(
+    "input",
+    (event) => {
+      if (!state.arcade.shuriken.running || !state.arcade.shuriken.current) {
+        return;
+      }
+
+      const typed = normalizeRomanization(event.target.value);
+      const expected = normalizeRomanization(state.arcade.shuriken.current.romaji);
+      if (typed !== expected) {
+        return;
+      }
+
+      event.stopImmediatePropagation();
+      const reviewMeta = markCharProgress(state.arcade.shuriken.current.id, true);
+      const delta = applyXpDelta(xpTable.arcadeShurikenHit);
+      recordActivityEvent({
+        xpDelta: delta,
+        success: true,
+        wasDue: reviewMeta.wasDue,
+      });
+      state.arcade.shuriken.score += 10 + state.arcade.shuriken.combo * 3;
+      state.arcade.shuriken.combo += 1;
+      state.progress.bestArcadeShuriken = Math.max(
+        state.progress.bestArcadeShuriken || 0,
+        state.arcade.shuriken.score
+      );
+      state.arcade.shuriken.status =
+        `${state.arcade.shuriken.current.char} dominado. Proximo arremesso. (${formatXpDelta(delta)})`;
+      saveProgress();
+      renderStats();
+      spawnShurikenToken();
+      renderArcade();
+    },
+    true
+  );
 }
 
 function setSection(section, trainTarget) {
@@ -2077,8 +2657,11 @@ function refreshPracticeState() {
 }
 
 function renderAll() {
+  ensureDailyState();
   renderSectionNav();
   renderTrainNav();
+  renderAudioControls();
+  renderInstallChrome();
   renderIdentity();
   renderStats();
   renderKanaGrid();
@@ -2093,6 +2676,7 @@ function renderAll() {
   renderBuilder();
   renderFocusRadar();
   renderConfusionNotes();
+  renderProgressDashboard();
   renderArcade();
 }
 
@@ -2137,6 +2721,7 @@ function summarizeProgress(progress = state.progress) {
     Number((progress.bestArcadeFoods || 0) > 0) +
     Number((progress.bestArcadePairs || 0) > 0);
   const xp = Math.max(0, Number(progress.xp || 0));
+  const weeklyXp = getWeeklyXp(progress.activityLog || []);
   const level = Math.max(1, 1 + Math.floor(xp / 140));
   const rank = getRankTitle(xp);
 
@@ -2145,8 +2730,14 @@ function summarizeProgress(progress = state.progress) {
     masteredCount,
     clearedGames,
     xp,
+    weeklyXp,
     level,
     rank,
+    dailyStreak: getDisplayDailyStreak(progress),
+    bestDailyStreak: Math.max(
+      Number(progress.bestDailyStreak || 0),
+      getDisplayDailyStreak(progress)
+    ),
   };
 }
 
@@ -2473,15 +3064,28 @@ function getLocalLeaderboard() {
         summary,
       };
     })
-    .sort((left, right) => {
-      if (right.summary.xp !== left.summary.xp) {
-        return right.summary.xp - left.summary.xp;
+    .sort((left, right) => left.userName.localeCompare(right.userName));
+}
+
+function sortLeaderboardEntries(entries) {
+  return [...entries].sort((left, right) => {
+    if (state.rankingView === "weekly") {
+      if (right.summary.weeklyXp !== left.summary.weeklyXp) {
+        return right.summary.weeklyXp - left.summary.weeklyXp;
       }
-      if (right.summary.masteredCount !== left.summary.masteredCount) {
-        return right.summary.masteredCount - left.summary.masteredCount;
+      if (right.summary.dailyStreak !== left.summary.dailyStreak) {
+        return right.summary.dailyStreak - left.summary.dailyStreak;
       }
-      return left.userName.localeCompare(right.userName);
-    });
+    }
+
+    if (right.summary.xp !== left.summary.xp) {
+      return right.summary.xp - left.summary.xp;
+    }
+    if (right.summary.masteredCount !== left.summary.masteredCount) {
+      return right.summary.masteredCount - left.summary.masteredCount;
+    }
+    return left.userName.localeCompare(right.userName);
+  });
 }
 
 function renderRanking() {
@@ -2489,9 +3093,20 @@ function renderRanking() {
     return;
   }
 
-  const leaderboard = isCloudMode() ? state.sharedRanking : getLocalLeaderboard();
+  const leaderboard = sortLeaderboardEntries(
+    isCloudMode() ? state.sharedRanking : getLocalLeaderboard()
+  );
+  const isWeekly = state.rankingView === "weekly";
   elements.rankingCount.textContent = `${leaderboard.length} perfis`;
   elements.arcadeRankingList.innerHTML = "";
+  elements.rankingViewToggle?.querySelectorAll("[data-ranking-view]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.rankingView === state.rankingView);
+  });
+  if (elements.rankingSeasonNote) {
+    elements.rankingSeasonNote.textContent = isWeekly
+      ? "Semana rolando: o placar olha o XP liquido dos ultimos 7 dias e desempata por streak."
+      : "Ranking geral: o placar olha o XP total e usa dominio de kana como desempate.";
+  }
 
   if (!leaderboard.length) {
     const empty = document.createElement("p");
@@ -2504,17 +3119,18 @@ function renderRanking() {
   }
 
   leaderboard.forEach((entry, index) => {
+    const points = isWeekly ? entry.summary.weeklyXp || 0 : entry.summary.xp || 0;
     const row = document.createElement("div");
     row.className = `ranking-row${entry.userName === state.currentUser ? " is-current" : ""}`;
     row.innerHTML = `
       <span class="ranking-position">#${index + 1}</span>
       <div class="ranking-meta">
         <strong>${entry.userName}</strong>
-        <p>${entry.summary.rank} - LV ${entry.summary.level}</p>
+        <p>${entry.summary.rank} - LV ${entry.summary.level} - streak ${entry.summary.dailyStreak || 0}d</p>
       </div>
       <div class="ranking-points">
-        <strong>${entry.summary.xp}</strong>
-        <span>XP</span>
+        <strong>${points}</strong>
+        <span>${isWeekly ? "XP 7d" : "XP"}</span>
       </div>
     `;
     elements.arcadeRankingList.appendChild(row);
@@ -2560,6 +3176,7 @@ function startShurikenGame() {
   state.progress.arcadeLastGame = "shuriken";
   state.arcade.shuriken = createShurikenState();
   state.arcade.shuriken.running = true;
+  recordActivityEvent({ arcadeStart: true });
   saveProgress();
   renderSectionNav();
   spawnShurikenToken();
@@ -2616,16 +3233,24 @@ function stepShuriken(timestamp) {
 }
 
 function handleShurikenMiss() {
+  let wasDue = false;
   if (state.arcade.shuriken.current) {
-    markCharProgress(state.arcade.shuriken.current.id, false);
+    const reviewMeta = markCharProgress(state.arcade.shuriken.current.id, false);
+    wasDue = reviewMeta.wasDue;
   }
 
   const delta = applyXpDelta(xpTable.arcadeShurikenMiss);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: false,
+    wasDue,
+  });
   state.arcade.shuriken.combo = 0;
   state.arcade.shuriken.lives -= 1;
   state.arcade.shuriken.status =
     `Passou do tempo. O mesmo tipo de leitura volta mais cedo agora. (${formatXpDelta(delta)})`;
   saveProgress();
+  renderStats();
 
   if (state.arcade.shuriken.lives <= 0) {
     finishShurikenGame(`Fim de rodada com ${state.arcade.shuriken.score} pontos.`);
@@ -2675,6 +3300,7 @@ function startFoodGame() {
   state.progress.arcadeLastGame = "foods";
   state.arcade.foods = createFoodState();
   state.arcade.foods.running = true;
+  recordActivityEvent({ arcadeStart: true });
   nextFoodQuestion();
   state.arcade.foods.timerId = window.setInterval(() => {
     state.arcade.foods.timeLeft -= 1;
@@ -2703,6 +3329,10 @@ function handleFoodChoice(choice) {
 
   const isCorrect = choice === state.arcade.foods.current.answer;
   const delta = applyXpDelta(isCorrect ? xpTable.arcadeFoodHit : xpTable.arcadeFoodMiss);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+  });
   if (isCorrect) {
     state.arcade.foods.score += 14;
     state.arcade.foods.status =
@@ -2718,6 +3348,7 @@ function handleFoodChoice(choice) {
     state.arcade.foods.score
   );
   saveProgress();
+  renderStats();
 
   if (state.arcade.foods.lives <= 0) {
     finishFoodGame(`Vidas esgotadas com ${state.arcade.foods.score} pontos.`);
@@ -2777,6 +3408,7 @@ function startPairsGame() {
   state.section = "arcade";
   state.arcade.screen = "pairs";
   state.progress.arcadeLastGame = "pairs";
+  recordActivityEvent({ arcadeStart: true });
 
   const source = shuffle([...getStudyPool()]).slice(0, Math.min(8, getStudyPool().length));
   const board = shuffle(
@@ -2838,7 +3470,12 @@ function handlePairSelection(index) {
     game.firstIndex = null;
     game.found += 1;
     game.status = `Par fechado. (${formatXpDelta(delta)})`;
-    markCharProgress(first.pairId, true);
+    const reviewMeta = markCharProgress(first.pairId, true);
+    recordActivityEvent({
+      xpDelta: delta,
+      success: true,
+      wasDue: reviewMeta.wasDue,
+    });
     if (game.found >= Math.max(1, Math.floor(game.board.length / 2))) {
       finishPairsGame(
         `Tabuleiro completo em ${game.seconds}s e ${game.moves} jogadas.`
@@ -2846,15 +3483,23 @@ function handlePairSelection(index) {
       return;
     }
     saveProgress();
+    renderStats();
     renderPairsGame();
     return;
   }
 
   game.lock = true;
-  markCharProgress(first.pairId, false);
-  markCharProgress(item.pairId, false);
+  const firstMeta = markCharProgress(first.pairId, false);
+  const secondMeta = markCharProgress(item.pairId, false);
   const delta = applyXpDelta(xpTable.arcadePairsMiss);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: false,
+    wasDue: firstMeta.wasDue || secondMeta.wasDue,
+  });
   game.status = `Nao era esse par. (${formatXpDelta(delta)})`;
+  saveProgress();
+  renderStats();
   renderPairsGame();
 
   game.timeoutId = window.setTimeout(() => {
@@ -2947,6 +3592,419 @@ function renderStats() {
   elements.confusionStreakLabel.textContent = `Sequencia: ${state.confusionStreak}`;
   elements.builderStreakLabel.textContent = `Sequencia: ${state.builderStreak}`;
   renderIdentity();
+  renderProgressDashboard();
+}
+
+function renderAudioControls() {
+  elements.audioRateToggle?.querySelectorAll("[data-audio-rate]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.audioRate === String(state.audioRate));
+  });
+  elements.audioRepeatToggle?.querySelectorAll("[data-audio-repeat]").forEach((button) => {
+    button.classList.toggle(
+      "is-active",
+      button.dataset.audioRepeat === String(state.audioRepeat)
+    );
+  });
+}
+
+function isStandaloneMode() {
+  return Boolean(
+    window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone
+  );
+}
+
+function renderInstallChrome() {
+  if (!elements.installApp || !elements.installStatus) {
+    return;
+  }
+
+  const standalone = isStandaloneMode();
+  const canPrompt = Boolean(runtime.installPrompt);
+  const httpContext = window.location.protocol.startsWith("http");
+
+  elements.installApp.disabled = standalone || !httpContext;
+
+  if (standalone) {
+    elements.installApp.textContent = "App instalado";
+    elements.installStatus.textContent =
+      "Ja esta com cara de app. O shell principal fica disponivel offline depois da primeira visita.";
+    return;
+  }
+
+  elements.installApp.textContent = canPrompt ? "Instalar agora" : "Instalar no celular";
+
+  if (!httpContext) {
+    elements.installStatus.textContent =
+      "Para instalar, abra a versao do Vercel ou um servidor local em vez do arquivo offline.";
+    return;
+  }
+
+  if (canPrompt) {
+    elements.installStatus.textContent =
+      "Pronto para instalar neste aparelho. Depois da primeira carga, o shell principal abre offline.";
+    return;
+  }
+
+  const isiPhone =
+    /iphone|ipad|ipod/i.test(window.navigator.userAgent || "") &&
+    /safari/i.test(window.navigator.userAgent || "");
+
+  elements.installStatus.textContent = isiPhone
+    ? "No iPhone, use Compartilhar > Adicionar a Tela de Inicio."
+    : "Abra este link no navegador do celular para instalar quando o navegador liberar o atalho.";
+}
+
+function getPhraseDeckByCategory(category) {
+  const fullDeck =
+    state.level === "base" ? phraseDecks.base : [...phraseDecks.base, ...phraseDecks.extended];
+  return fullDeck.filter((item) => item.category === category);
+}
+
+function getActiveReviewItemPool() {
+  const pool = new Map();
+  [...getActiveReadingDeck(), ...getActiveContextDeck(), ...getPhraseDeckByCategory("saudacoes"), ...getPhraseDeckByCategory("viagem"), ...getPhraseDeckByCategory("conversa"), ...getPhraseDeckByCategory("anime")].forEach((item) => {
+    pool.set(item.id, item);
+  });
+  return [...pool.values()];
+}
+
+function getReviewRecord(reviewMap, id) {
+  return normalizeReviewRecord(reviewMap?.[id]);
+}
+
+function getReviewBucket(record, now = Date.now()) {
+  if (!record.lastSeenAt) {
+    return "new";
+  }
+  if (record.streak < 2 && record.dueAt > now) {
+    return "learning";
+  }
+  if (!record.dueAt || record.dueAt <= now) {
+    return "today";
+  }
+  if (record.dueAt <= now + 24 * 60 * 60 * 1000) {
+    return "tomorrow";
+  }
+  return "later";
+}
+
+function getReviewDueText(record, now = Date.now()) {
+  const bucket = getReviewBucket(record, now);
+  if (bucket === "new") {
+    return "ainda sem historico";
+  }
+  if (bucket === "learning") {
+    return "voltando em breve";
+  }
+  if (bucket === "today") {
+    return "vence agora";
+  }
+  if (bucket === "tomorrow") {
+    return "vence amanha";
+  }
+  return "mais estavel";
+}
+
+function computeReviewPriority(record, baseWeight = 1, now = Date.now()) {
+  let score = Math.max(0.1, baseWeight);
+  const bucket = getReviewBucket(record, now);
+
+  if (bucket === "new") {
+    score += 2.2;
+  } else if (bucket === "learning") {
+    score += 3.2;
+  } else if (bucket === "today") {
+    score += 4.4 + Math.min(2.4, Math.max(0, now - record.dueAt) / (1000 * 60 * 60 * 12));
+  } else if (bucket === "tomorrow") {
+    score += 1.3;
+  } else {
+    score += 0.18;
+  }
+
+  score += (record.lapses || 0) * 0.35;
+  return score;
+}
+
+function getTrackProgress(track) {
+  if (track.id === "foundations") {
+    const pool = getStudyPool();
+    const practiced = pool.filter((entry) => {
+      const stats = getCharStats(entry.id);
+      return stats.hits + stats.misses > 0;
+    }).length;
+    const mastered = pool.filter((entry) => {
+      const stats = getCharStats(entry.id);
+      const total = stats.hits + stats.misses;
+      return total >= 5 && stats.hits >= 4 && stats.hits / total >= 0.78;
+    }).length;
+    const percent = Math.round(((practiced + mastered) / Math.max(1, pool.length * 2)) * 100);
+    return {
+      percent,
+      meta: `${mastered}/${pool.length} dominados`,
+    };
+  }
+
+  if (track.id === "arcade") {
+    const cleared = getArcadeClearedCount();
+    return {
+      percent: Math.round((cleared / 3) * 100),
+      meta: `${cleared}/3 cartuchos vencidos`,
+    };
+  }
+
+  const deck = getPhraseDeckByCategory(track.category);
+  const practiced = deck.filter((item) => {
+    const stats = getItemStats(item.id);
+    return stats.hits + stats.misses > 0;
+  }).length;
+  const stable = deck.filter((item) => {
+    const stats = getItemStats(item.id);
+    const total = stats.hits + stats.misses;
+    return total >= 3 && stats.hits / total >= 0.72;
+  }).length;
+
+  return {
+    percent: Math.round(((practiced + stable) / Math.max(1, deck.length * 2)) * 100),
+    meta: `${practiced}/${deck.length} vistas • ${stable} estaveis`,
+  };
+}
+
+function buildReviewSnapshot() {
+  const now = Date.now();
+  const bucketCounts = Object.fromEntries(reviewBucketOrder.map((bucket) => [bucket, 0]));
+  const queue = [];
+
+  getStudyPool().forEach((entry) => {
+    const record = getReviewRecord(state.progress.charReview, entry.id);
+    const bucket = getReviewBucket(record, now);
+    bucketCounts[bucket] += 1;
+    queue.push({
+      id: entry.id,
+      title: entry.char,
+      copy: `${entry.romaji} • ${entry.family} • ${getReviewDueText(record, now)}`,
+      tag: labelForScript(entry.script),
+      bucket,
+      priority: computeReviewPriority(record, computeCharWeight(entry), now),
+    });
+  });
+
+  getActiveReviewItemPool().forEach((item) => {
+    const record = getReviewRecord(state.progress.itemReview, item.id);
+    const bucket = getReviewBucket(record, now);
+    bucketCounts[bucket] += 1;
+    queue.push({
+      id: item.id,
+      title: item.text,
+      copy: `${item.meaning} • ${getReviewDueText(record, now)}`,
+      tag: item.category ? labelForPhraseCategory(item.category) : labelForTextGroup(item.group),
+      bucket,
+      priority: computeReviewPriority(record, computeItemWeight(item) + 0.2, now),
+    });
+  });
+
+  queue.sort((left, right) => right.priority - left.priority || left.title.localeCompare(right.title));
+
+  return {
+    bucketCounts,
+    queue,
+    dueToday: bucketCounts.today + bucketCounts.learning,
+  };
+}
+
+function renderMissionList(container, missions) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+  missions.forEach((mission) => {
+    const item = document.createElement("article");
+    item.className = `mission-item${mission.complete ? " is-complete" : ""}`;
+    item.innerHTML = `
+      <div class="mission-head">
+        <strong>${mission.label}</strong>
+        <span>${Math.min(mission.value, mission.target)}/${mission.target}</span>
+      </div>
+      <p class="mission-copy">${mission.description}</p>
+      <div class="mission-progress"><span style="width: ${mission.ratio}%"></span></div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function renderReviewBucketGrid(container, bucketCounts) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+  reviewBucketOrder.forEach((bucket) => {
+    const card = document.createElement("article");
+    card.className = "review-bucket-card";
+    card.innerHTML = `
+      <span>${reviewBucketMeta[bucket].label}</span>
+      <strong>${bucketCounts[bucket] || 0}</strong>
+      <p class="track-card-copy">${reviewBucketMeta[bucket].note}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderReviewQueue(container, items) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+  items.forEach((item) => {
+    const article = document.createElement("article");
+    article.className = "review-item";
+    article.innerHTML = `
+      <div class="review-item-head">
+        <strong>${item.title}</strong>
+        <span class="review-item-tag">${reviewBucketMeta[item.bucket].label}</span>
+      </div>
+      <p class="review-item-copy">${item.copy}</p>
+      <div class="review-item-footer">
+        <span class="track-card-tag">${item.tag}</span>
+      </div>
+    `;
+    container.appendChild(article);
+  });
+}
+
+function renderActivityTimeline() {
+  if (!elements.activityTimeline || !elements.activitySummary) {
+    return;
+  }
+
+  const entries = getActivityWindowEntries();
+  const maxXp = Math.max(20, ...entries.map((entry) => Math.max(0, entry.xp)));
+
+  elements.activitySummary.textContent = `${getWeeklyXp()} XP nos ultimos 7 dias`;
+  elements.activityTimeline.innerHTML = "";
+
+  entries.forEach((entry) => {
+    const article = document.createElement("article");
+    article.className = "activity-bar";
+    const dayLabel = new Date(`${entry.dateKey}T12:00:00`).toLocaleDateString("pt-BR", {
+      weekday: "short",
+    });
+    const height = Math.max(8, Math.round((Math.max(0, entry.xp) / maxXp) * 100));
+    article.innerHTML = `
+      <div class="activity-bar-track">
+        <span class="activity-fill" style="height: ${height}%"></span>
+      </div>
+      <div class="activity-bar-head">
+        <strong>${Math.round(entry.xp)}</strong>
+        <span>${entry.correct}/${entry.wrong}</span>
+      </div>
+      <p class="activity-day">${dayLabel}</p>
+      <p class="activity-bar-meta">${entry.sessions} blocos</p>
+    `;
+    elements.activityTimeline.appendChild(article);
+  });
+}
+
+function renderTrackGrid() {
+  if (!elements.trackGrid) {
+    return;
+  }
+
+  elements.trackGrid.innerHTML = "";
+  trackCatalog.forEach((track) => {
+    const progress = getTrackProgress(track);
+    const article = document.createElement("article");
+    article.className = "track-card";
+    article.innerHTML = `
+      <div class="track-card-head">
+        <strong>${track.label}</strong>
+        <span>${progress.percent}%</span>
+      </div>
+      <p class="track-card-copy">${track.note}</p>
+      <div class="track-progress"><span style="width: ${progress.percent}%"></span></div>
+      <div class="track-card-footer">
+        <span class="track-card-tag">${progress.meta}</span>
+        <button type="button" class="ghost-button progress-jump" data-track-id="${track.id}">
+          Abrir
+        </button>
+      </div>
+    `;
+    elements.trackGrid.appendChild(article);
+  });
+}
+
+function renderProgressDashboard() {
+  const summary = summarizeProgress();
+  const missions = dailyMissionCatalog.map((mission) => {
+    const value = getMissionValue(state.progress.daily, mission.id);
+    return {
+      ...mission,
+      value,
+      complete: value >= mission.target,
+      ratio: Math.max(0, Math.min(100, Math.round((value / mission.target) * 100))),
+    };
+  });
+  const reviewSnapshot = buildReviewSnapshot();
+
+  if (elements.dailyStreakPill) {
+    elements.dailyStreakPill.textContent = `${summary.dailyStreak} dias`;
+  }
+  if (elements.todayDuePill) {
+    elements.todayDuePill.textContent = `${reviewSnapshot.dueToday} itens hoje`;
+  }
+  if (elements.progressRankPill) {
+    elements.progressRankPill.textContent = `${summary.rank} • LV ${summary.level}`;
+  }
+  if (elements.progressXpTotal) {
+    elements.progressXpTotal.textContent = String(summary.xp);
+  }
+  if (elements.progressWeeklyXp) {
+    elements.progressWeeklyXp.textContent = String(summary.weeklyXp);
+  }
+  if (elements.progressDailyStreak) {
+    elements.progressDailyStreak.textContent = String(summary.dailyStreak);
+  }
+  if (elements.progressDueTotal) {
+    elements.progressDueTotal.textContent = String(reviewSnapshot.dueToday);
+  }
+  if (elements.progressMissionStatus) {
+    const completed = missions.filter((mission) => mission.complete).length;
+    elements.progressMissionStatus.textContent = `${completed}/${missions.length}`;
+  }
+  if (elements.reviewDueSummary) {
+    elements.reviewDueSummary.textContent = `${reviewSnapshot.dueToday} itens vencendo`;
+  }
+
+  renderMissionList(elements.todayMissionList, missions);
+  renderMissionList(elements.progressMissionList, missions);
+  renderReviewBucketGrid(elements.todayReviewBuckets, reviewSnapshot.bucketCounts);
+  renderReviewBucketGrid(elements.progressReviewBuckets, reviewSnapshot.bucketCounts);
+  renderReviewQueue(elements.progressReviewList, reviewSnapshot.queue.slice(0, 8));
+  renderReviewQueue(elements.reviewPriorityList, reviewSnapshot.queue.slice(0, 5));
+  renderActivityTimeline();
+  renderTrackGrid();
+}
+
+function launchTrack(trackId) {
+  const track = trackCatalog.find((item) => item.id === trackId);
+  if (!track) {
+    return;
+  }
+
+  if (track.action.phraseCategory) {
+    state.phraseCategory = track.action.phraseCategory;
+    generatePhrase();
+  }
+
+  if (track.action.section === "arcade") {
+    setSection("arcade");
+    setArcadeScreen(track.action.arcadeScreen || "games");
+    return;
+  }
+
+  setSection(track.action.section || "training", track.action.trainTarget);
+  renderAll();
 }
 
 function renderKanaGrid() {
@@ -3096,10 +4154,15 @@ function checkQuizAnswer(choice, button) {
   const isCorrect = choice === expected;
 
   state.quiz.answered = true;
-  markCharProgress(correct.id, isCorrect);
+  const reviewMeta = markCharProgress(correct.id, isCorrect);
   const delta = applyXpDelta(
     isCorrect ? xpTable.recognition.correct : xpTable.recognition.wrong
   );
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: reviewMeta.wasDue,
+  });
 
   if (isCorrect) {
     state.quizStreak += 1;
@@ -3155,9 +4218,14 @@ function checkReading() {
   const expected = normalizeRomanization(state.reading.answer);
   const isCorrect = typed === expected;
 
-  markItemProgress(state.reading.id, isCorrect);
-  markTextProgress(state.reading.text, isCorrect);
+  const itemMeta = markItemProgress(state.reading.id, isCorrect);
+  const charMetas = markTextProgress(state.reading.text, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.reading.correct : xpTable.reading.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  });
 
   if (isCorrect) {
     state.readingStreak += 1;
@@ -3208,7 +4276,7 @@ function setPhraseCategory(category) {
 function getActivePhraseDeck() {
   const fullDeck =
     state.level === "base" ? phraseDecks.base : [...phraseDecks.base, ...phraseDecks.extended];
-  const filteredDeck = fullDeck.filter((item) => item.category === state.phraseCategory);
+  const filteredDeck = getPhraseDeckByCategory(state.phraseCategory);
   return filteredDeck.length ? filteredDeck : fullDeck;
 }
 
@@ -3246,9 +4314,15 @@ function checkPhrase() {
   const expected = normalizeRomanization(state.phrase.answer);
   const isCorrect = typed === expected;
 
-  markItemProgress(state.phrase.id, isCorrect);
-  markTextProgress(state.phrase.text, isCorrect);
+  const itemMeta = markItemProgress(state.phrase.id, isCorrect);
+  const charMetas = markTextProgress(state.phrase.text, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.phrases.correct : xpTable.phrases.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+    phraseBlock: true,
+  });
 
   if (isCorrect) {
     state.phraseStreak += 1;
@@ -3279,9 +4353,15 @@ function checkContext() {
   const expected = normalizeRomanization(state.context.answer);
   const isCorrect = typed === expected;
 
-  markItemProgress(state.context.id, isCorrect);
-  markTextProgress(state.context.text, isCorrect);
+  const itemMeta = markItemProgress(state.context.id, isCorrect);
+  const charMetas = markTextProgress(state.context.text, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.context.correct : xpTable.context.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+    phraseBlock: true,
+  });
 
   if (isCorrect) {
     state.contextStreak += 1;
@@ -3358,12 +4438,18 @@ function checkClozeAnswer(choice, button) {
 
   state.cloze.answered = true;
   const isCorrect = choice === state.cloze.correctChar;
-  markItemProgress(state.cloze.id, isCorrect);
+  const itemMeta = markItemProgress(state.cloze.id, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.cloze.correct : xpTable.cloze.wrong);
   const entry = charIndex.get(state.cloze.correctChar);
+  let charMeta = null;
   if (entry) {
-    markCharProgress(entry.id, isCorrect);
+    charMeta = markCharProgress(entry.id, isCorrect);
   }
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || Boolean(charMeta?.wasDue),
+  });
 
   if (isCorrect) {
     state.clozeStreak += 1;
@@ -3421,9 +4507,15 @@ function checkDictation() {
   const expected = normalizeRomanization(state.dictation.answer);
   const isCorrect = typed === expected;
 
-  markItemProgress(state.dictation.id, isCorrect);
-  markTextProgress(state.dictation.text, isCorrect);
+  const itemMeta = markItemProgress(state.dictation.id, isCorrect);
+  const charMetas = markTextProgress(state.dictation.text, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.dictation.correct : xpTable.dictation.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+    phraseBlock: true,
+  });
 
   if (isCorrect) {
     state.dictationStreak += 1;
@@ -3485,9 +4577,14 @@ function checkConfusionAnswer(choice, button) {
 
   state.confusion.answered = true;
   const isCorrect = choice === state.confusion.answer;
-  markItemProgress(state.confusion.id, isCorrect);
-  markCharsByList(state.confusion.charIds, isCorrect);
+  const itemMeta = markItemProgress(state.confusion.id, isCorrect);
+  const charMetas = markCharsByList(state.confusion.charIds, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.confusion.correct : xpTable.confusion.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  });
 
   if (isCorrect) {
     state.confusionStreak += 1;
@@ -3603,9 +4700,14 @@ function checkBuilder() {
   const expected = state.builder.text;
   const isCorrect = attempt === expected;
 
-  markItemProgress(state.builder.id, isCorrect);
-  markTextProgress(expected, isCorrect);
+  const itemMeta = markItemProgress(state.builder.id, isCorrect);
+  const charMetas = markTextProgress(expected, isCorrect);
   const delta = applyXpDelta(isCorrect ? xpTable.builder.correct : xpTable.builder.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  });
 
   if (isCorrect) {
     state.builderStreak += 1;
@@ -3824,7 +4926,13 @@ function defaultProgress() {
   return {
     charStats: {},
     itemStats: {},
+    charReview: {},
+    itemReview: {},
     xp: 0,
+    daily: createDailyProgressState(),
+    completedStreakDays: 0,
+    bestDailyStreak: 0,
+    activityLog: [],
     bestQuizStreak: 0,
     bestReadingStreak: 0,
     bestContextStreak: 0,
@@ -3954,6 +5062,46 @@ function getItemStats(id) {
   return state.progress.itemStats[id] || { hits: 0, misses: 0 };
 }
 
+function updateReviewRecord(reviewMap, id, success) {
+  const now = Date.now();
+  const current = getReviewRecord(reviewMap, id);
+  const wasDue = !current.lastSeenAt || !current.dueAt || current.dueAt <= now;
+
+  if (success) {
+    const intervalHours = !current.lastSeenAt
+      ? 6
+      : Math.max(10, Math.round((current.intervalHours || 6) * current.ease));
+    reviewMap[id] = {
+      ...current,
+      lastSeenAt: now,
+      dueAt: now + intervalHours * 60 * 60 * 1000,
+      intervalHours,
+      ease: Math.min(3.2, current.ease + 0.08),
+      streak: current.streak + 1,
+      lastResult: "success",
+    };
+  } else {
+    const intervalHours = current.lastSeenAt
+      ? Math.max(2, Math.round((current.intervalHours || 6) * 0.4))
+      : 2;
+    reviewMap[id] = {
+      ...current,
+      lastSeenAt: now,
+      dueAt: now + intervalHours * 60 * 60 * 1000,
+      intervalHours,
+      ease: Math.max(1.35, current.ease - 0.18),
+      streak: 0,
+      lapses: current.lapses + 1,
+      lastResult: "miss",
+    };
+  }
+
+  return {
+    wasDue,
+    record: reviewMap[id],
+  };
+}
+
 function markCharProgress(id, success) {
   if (!state.progress.charStats[id]) {
     state.progress.charStats[id] = { hits: 0, misses: 0 };
@@ -3963,6 +5111,7 @@ function markCharProgress(id, success) {
   } else {
     state.progress.charStats[id].misses += 1;
   }
+  return updateReviewRecord(state.progress.charReview, id, success);
 }
 
 function markItemProgress(id, success) {
@@ -3974,19 +5123,21 @@ function markItemProgress(id, success) {
   } else {
     state.progress.itemStats[id].misses += 1;
   }
+  return updateReviewRecord(state.progress.itemReview, id, success);
 }
 
 function markTextProgress(text, success) {
-  [...text].forEach((char) => {
+  return [...text].map((char) => {
     const entry = charIndex.get(char);
     if (entry) {
-      markCharProgress(entry.id, success);
+      return markCharProgress(entry.id, success);
     }
-  });
+    return null;
+  }).filter(Boolean);
 }
 
 function markCharsByList(charIds, success) {
-  charIds.forEach((id) => markCharProgress(id, success));
+  return charIds.map((id) => markCharProgress(id, success));
 }
 
 function isWeakEntry(entry) {
@@ -4037,18 +5188,31 @@ function computeCharWeight(entry) {
   const total = stats.hits + stats.misses;
   const accuracy = total ? stats.hits / total : 0;
   const weak = isWeakEntry(entry);
+  const review = getReviewRecord(state.progress.charReview, entry.id);
+  const bucket = getReviewBucket(review);
 
-  let weight = 1;
+  let weight = 0.7;
 
-  if (total === 0) {
-    weight += 2.6;
+  if (bucket === "new") {
+    weight += 2.5;
+  } else if (bucket === "learning") {
+    weight += 3.1;
+  } else if (bucket === "today") {
+    weight += 4.2;
+  } else if (bucket === "tomorrow") {
+    weight += 1.35;
   } else {
-    weight += Math.max(0, 0.84 - accuracy) * 5.4;
+    weight += 0.3;
   }
 
+  if (total === 0) {
+    weight += 1.2;
+  } else {
+    weight += Math.max(0, 0.84 - accuracy) * 4.8;
+  }
   weight += stats.misses * 1.35;
 
-  if (stats.hits >= 5 && accuracy >= 0.9) {
+  if (stats.hits >= 5 && accuracy >= 0.9 && bucket === "later") {
     weight *= 0.28;
   }
 
@@ -4063,23 +5227,37 @@ function computeItemWeight(item) {
   const stats = getItemStats(item.id);
   const total = stats.hits + stats.misses;
   const accuracy = total ? stats.hits / total : 0;
+  const review = getReviewRecord(state.progress.itemReview, item.id);
+  const bucket = getReviewBucket(review);
   const relatedEntries = item.charIds.map((id) => entryIndex.get(id)).filter(Boolean);
   const averageCharWeight =
     relatedEntries.reduce((sum, entry) => sum + computeCharWeight(entry), 0) /
     Math.max(1, relatedEntries.length);
   const touchesWeakEntry = relatedEntries.some((entry) => isWeakEntry(entry));
 
-  let weight = 0.75 + averageCharWeight * 0.7;
+  let weight = 0.7 + averageCharWeight * 0.65;
+
+  if (bucket === "new") {
+    weight += 1.9;
+  } else if (bucket === "learning") {
+    weight += 2.7;
+  } else if (bucket === "today") {
+    weight += 3.8;
+  } else if (bucket === "tomorrow") {
+    weight += 1.15;
+  } else {
+    weight += 0.22;
+  }
 
   if (total === 0) {
-    weight += 1.6;
+    weight += 0.9;
   } else {
-    weight += Math.max(0, 0.86 - accuracy) * 4.8;
+    weight += Math.max(0, 0.86 - accuracy) * 4.4;
   }
 
   weight += stats.misses * 1.2;
 
-  if (stats.hits >= 4 && accuracy >= 0.88) {
+  if (stats.hits >= 4 && accuracy >= 0.88 && bucket === "later") {
     weight *= 0.38;
   }
 
@@ -4428,18 +5606,19 @@ function speakText(text) {
     return;
   }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "ja-JP";
-  utterance.rate = 0.85;
-
   const voices = window.speechSynthesis.getVoices();
   const japaneseVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("ja"));
-  if (japaneseVoice) {
-    utterance.voice = japaneseVoice;
-  }
-
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
+
+  for (let count = 0; count < Math.max(1, state.audioRepeat); count += 1) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ja-JP";
+    utterance.rate = state.audioRate;
+    if (japaneseVoice) {
+      utterance.voice = japaneseVoice;
+    }
+    window.speechSynthesis.speak(utterance);
+  }
 }
 
 function shuffle(list) {

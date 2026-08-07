@@ -26,9 +26,12 @@ function toLeaderboardEntry(row) {
     userName: row.display_name,
     summary: {
       xp: row.xp || 0,
+      weeklyXp: row.weekly_xp || 0,
       level: row.level || 1,
       rank: row.rank_title || "Novato",
       masteredCount: row.mastered_count || 0,
+      dailyStreak: row.current_streak || 0,
+      bestDailyStreak: row.best_daily_streak || 0,
     },
   };
 }
@@ -60,7 +63,9 @@ export function createSupabaseBridge({ url, anonKey }) {
 
     const { data: existing, error: existingError } = await client
       .from("profiles")
-      .select("id, display_name, xp, level, rank_title, mastered_count")
+      .select(
+        "id, display_name, xp, weekly_xp, level, rank_title, mastered_count, current_streak, best_daily_streak"
+      )
       .eq("id", user.id)
       .maybeSingle();
 
@@ -78,12 +83,17 @@ export function createSupabaseBridge({ url, anonKey }) {
         id: user.id,
         display_name: fallbackName,
         xp: 0,
+        weekly_xp: 0,
         level: 1,
         rank_title: "Novato",
         mastered_count: 0,
+        current_streak: 0,
+        best_daily_streak: 0,
         updated_at: new Date().toISOString(),
       })
-      .select("id, display_name, xp, level, rank_title, mastered_count")
+      .select(
+        "id, display_name, xp, weekly_xp, level, rank_title, mastered_count, current_streak, best_daily_streak"
+      )
       .single();
 
     if (error) {
@@ -138,7 +148,9 @@ export function createSupabaseBridge({ url, anonKey }) {
   async function loadLeaderboard(limit = 25) {
     const { data, error } = await client
       .from("profiles")
-      .select("display_name, xp, level, rank_title, mastered_count")
+      .select(
+        "display_name, xp, weekly_xp, level, rank_title, mastered_count, current_streak, best_daily_streak"
+      )
       .order("xp", { ascending: false })
       .order("mastered_count", { ascending: false })
       .order("display_name", { ascending: true })
@@ -228,9 +240,12 @@ export function createSupabaseBridge({ url, anonKey }) {
         id: activeUser.id,
         display_name: userName,
         xp: summary.xp || 0,
+        weekly_xp: summary.weeklyXp || 0,
         level: summary.level || 1,
         rank_title: summary.rank || "Novato",
         mastered_count: summary.masteredCount || 0,
+        current_streak: summary.dailyStreak || 0,
+        best_daily_streak: summary.bestDailyStreak || 0,
         updated_at: new Date().toISOString(),
       };
 

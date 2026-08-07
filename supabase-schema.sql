@@ -4,11 +4,19 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   display_name text not null unique,
   xp integer not null default 0,
+  weekly_xp integer not null default 0,
   level integer not null default 1,
   rank_title text not null default 'Novato',
   mastered_count integer not null default 0,
+  current_streak integer not null default 0,
+  best_daily_streak integer not null default 0,
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.profiles
+  add column if not exists weekly_xp integer not null default 0,
+  add column if not exists current_streak integer not null default 0,
+  add column if not exists best_daily_streak integer not null default 0;
 
 create table if not exists public.player_progress (
   user_id uuid primary key references auth.users (id) on delete cascade,

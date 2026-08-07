@@ -4,8 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#06090d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Kana Sprint</title>
     <link rel="icon" type="image/svg+xml" href="logo-kana-sprint.svg" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -81,20 +85,26 @@
             </div>
           </div>
 
-          <div class="hero-actions">
-            <div class="profile-chip">
-              <span class="control-label">Perfil</span>
-              <strong id="profile-name">Visitante</strong>
-              <span id="profile-rank" class="profile-rank">Novato</span>
-              <span id="sync-badge" class="sync-badge is-local">Modo local</span>
-            </div>
+            <div class="hero-actions">
+              <div class="profile-chip">
+                <span class="control-label">Perfil</span>
+                <strong id="profile-name">Visitante</strong>
+                <span id="profile-rank" class="profile-rank">Novato</span>
+                <span id="sync-badge" class="sync-badge is-local">Modo local</span>
+              </div>
 
-            <a class="hero-link" href="#main-nav">Ir para os modos</a>
-            <button type="button" id="logout-button" class="ghost-button hero-logout">
-              Sair
-            </button>
+              <a class="hero-link" href="#main-nav">Ir para os modos</a>
+              <button type="button" id="install-app" class="ghost-button hero-install">
+                Instalar no celular
+              </button>
+              <button type="button" id="logout-button" class="ghost-button hero-logout">
+                Sair
+              </button>
+              <p id="install-status" class="hero-install-note">
+                Abra no navegador do celular para instalar e usar como app.
+              </p>
+            </div>
           </div>
-        </div>
 
         <div class="hero-strip" aria-label="Fluxo principal">
           <div class="hero-strip-item">
@@ -147,6 +157,21 @@
               <button type="button" data-focus="weak">Meus erros</button>
             </div>
           </div>
+
+          <div class="control-block">
+            <span class="control-label">Audio</span>
+            <div class="stacked-controls">
+              <div class="segmented compact-segmented" id="audio-rate-toggle">
+                <button type="button" data-audio-rate="0.75">0.75x</button>
+                <button type="button" data-audio-rate="0.9" class="is-active">0.9x</button>
+                <button type="button" data-audio-rate="1.05">1.05x</button>
+              </div>
+              <div class="segmented compact-segmented" id="audio-repeat-toggle">
+                <button type="button" data-audio-repeat="1" class="is-active">1 vez</button>
+                <button type="button" data-audio-repeat="2">2 vezes</button>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -157,8 +182,9 @@
           </button>
           <button type="button" data-section-target="study">Estudo</button>
           <button type="button" data-section-target="training">Treino</button>
-          <button type="button" data-section-target="arcade" data-arcade-screen="hub">Arcade</button>
+          <button type="button" data-section-target="progress">Progresso</button>
           <button type="button" data-section-target="review">Revisao</button>
+          <button type="button" data-section-target="arcade" data-arcade-screen="hub">Arcade</button>
         </div>
       </nav>
 
@@ -185,6 +211,30 @@
                 <button type="button" id="activate-weak-focus" class="ghost-button">
                   Treinar meus erros
                 </button>
+              </div>
+
+              <div class="today-deck">
+                <article class="today-callout">
+                  <div class="panel-subhead">
+                    <div>
+                      <p class="route-label">Missao diaria</p>
+                      <h3>Entre, resolva e marque sequencia</h3>
+                    </div>
+                    <span class="pill" id="daily-streak-pill">0 dias</span>
+                  </div>
+                  <div id="today-mission-list" class="mission-list"></div>
+                </article>
+
+                <article class="today-callout">
+                  <div class="panel-subhead">
+                    <div>
+                      <p class="route-label">Fila de revisao</p>
+                      <h3>O que merece voltar agora</h3>
+                    </div>
+                    <span class="pill muted" id="today-due-pill">0 itens hoje</span>
+                  </div>
+                  <div id="today-review-buckets" class="review-bucket-grid"></div>
+                </article>
               </div>
 
               <div class="today-route">
@@ -622,6 +672,109 @@
           </article>
         </section>
 
+        <section class="workspace-section" data-section-panel="progress">
+          <article class="surface panel">
+            <div class="surface-head">
+              <div>
+                <p class="eyebrow">Progresso</p>
+                <h2>Ritmo, revisao e trilhas</h2>
+              </div>
+              <p class="surface-note">
+                Uma visao mais clara do que voce esta fixando, do que vence hoje
+                e de quais contextos ja estao ganhando corpo.
+              </p>
+            </div>
+
+            <div class="progress-top-grid">
+              <article class="progress-card progress-card-hero">
+                <div class="panel-subhead">
+                  <div>
+                    <p class="route-label">Resumo da semana</p>
+                    <h3>Consistencia acima de volume</h3>
+                  </div>
+                  <span class="pill" id="progress-rank-pill">Novato</span>
+                </div>
+
+                <div class="progress-metric-grid">
+                  <div class="metric">
+                    <span class="metric-label">XP total</span>
+                    <strong id="progress-xp-total">0</strong>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">XP semanal</span>
+                    <strong id="progress-weekly-xp">0</strong>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Streak diaria</span>
+                    <strong id="progress-daily-streak">0</strong>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Vencem hoje</span>
+                    <strong id="progress-due-total">0</strong>
+                  </div>
+                </div>
+
+                <div class="progress-mission-wrap">
+                  <div class="panel-subhead">
+                    <h3>Missao de hoje</h3>
+                    <span class="pill muted" id="progress-mission-status">0/4</span>
+                  </div>
+                  <div id="progress-mission-list" class="mission-list"></div>
+                </div>
+              </article>
+
+              <article class="progress-card">
+                <div class="panel-subhead">
+                  <div>
+                    <p class="route-label">Memoria espaçada</p>
+                    <h3>Quando cada bloco volta</h3>
+                  </div>
+                  <button
+                    type="button"
+                    class="ghost-button progress-jump"
+                    data-section-target="review"
+                  >
+                    Abrir revisao
+                  </button>
+                </div>
+                <div id="progress-review-buckets" class="review-bucket-grid"></div>
+                <div id="progress-review-list" class="progress-review-list"></div>
+              </article>
+            </div>
+
+            <div class="progress-bottom-grid">
+              <article class="progress-card">
+                <div class="panel-subhead">
+                  <div>
+                    <p class="route-label">Ultimos 7 dias</p>
+                    <h3>Fluxo de atividade</h3>
+                  </div>
+                  <span class="pill muted" id="activity-summary">0 XP nos ultimos 7 dias</span>
+                </div>
+                <div id="activity-timeline" class="activity-timeline"></div>
+              </article>
+
+              <article class="progress-card">
+                <div class="panel-subhead">
+                  <div>
+                    <p class="route-label">Trilhas</p>
+                    <h3>Contextos para destravar leitura</h3>
+                  </div>
+                  <button
+                    type="button"
+                    class="ghost-button progress-jump"
+                    data-section-target="training"
+                    data-train-target="phrases"
+                  >
+                    Ir para frases
+                  </button>
+                </div>
+                <div id="track-grid" class="track-grid"></div>
+              </article>
+            </div>
+          </article>
+        </section>
+
         <section class="workspace-section" data-section-panel="review">
           <article class="surface panel">
             <div class="surface-head">
@@ -648,6 +801,17 @@
                 </p>
 
                 <div id="weak-list-review" class="weak-list"></div>
+
+                <div class="review-priority-card">
+                  <div class="panel-subhead">
+                    <div>
+                      <p class="route-label">Proximos da fila</p>
+                      <h3>Revisao acionavel</h3>
+                    </div>
+                    <span class="pill muted" id="review-due-summary">0 itens</span>
+                  </div>
+                  <div id="review-priority-list" class="progress-review-list compact"></div>
+                </div>
 
                 <div class="review-actions">
                   <button type="button" id="clear-focus" class="ghost-button">
@@ -806,6 +970,17 @@
                         <span class="pill muted" id="ranking-count">0 perfis</span>
                       </div>
 
+                      <div id="ranking-view-toggle" class="segmented compact-segmented ranking-toggle">
+                        <button type="button" data-ranking-view="overall" class="is-active">
+                          Geral
+                        </button>
+                        <button type="button" data-ranking-view="weekly">Semanal</button>
+                      </div>
+
+                      <p id="ranking-season-note" class="arcade-record-note">
+                        O ranking geral olha o XP total. O semanal destaca quem manteve ritmo nos ultimos 7 dias.
+                      </p>
+
                       <div id="arcade-ranking-list" class="arcade-ranking-list"></div>
                     </article>
                   </div>
@@ -949,9 +1124,11 @@
           Progresso salvo neste navegador. Se o audio nao falar, o resto do
           treino continua normalmente.
         </p>
-        <button type="button" id="reset-progress" class="ghost-button">
-          Zerar progresso salvo
-        </button>
+        <div class="footer-actions">
+          <button type="button" id="reset-progress" class="ghost-button">
+            Zerar progresso salvo
+          </button>
+        </div>
       </footer>
     </div>
 

@@ -258,6 +258,15 @@ a:focus-visible {
   align-items: start;
 }
 
+.hero-install-note {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
 .brand-lockup {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -443,7 +452,7 @@ a:focus-visible {
 
 .hero-controls {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  grid-template-columns: 1.15fr 1fr 1fr 1.1fr;
   gap: 0.95rem;
   margin-top: 1rem;
 }
@@ -455,6 +464,11 @@ a:focus-visible {
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.035);
+}
+
+.stacked-controls {
+  display: grid;
+  gap: 0.55rem;
 }
 
 .control-label,
@@ -533,6 +547,16 @@ a:focus-visible {
   color: #0a1013;
   border-color: transparent;
   box-shadow: 0 12px 28px rgba(203, 255, 56, 0.18);
+}
+
+.compact-segmented {
+  gap: 0.45rem;
+}
+
+.compact-segmented button {
+  min-height: 42px;
+  padding: 0.66rem 0.82rem;
+  font-size: 0.88rem;
 }
 
 .main-nav {
@@ -675,6 +699,40 @@ button:disabled {
   border-top: 1px solid var(--line);
 }
 
+.today-deck {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.today-callout,
+.progress-card,
+.review-priority-card {
+  display: grid;
+  align-content: start;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+    var(--surface-strong);
+}
+
+.panel-subhead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.panel-subhead h3 {
+  margin: 0.18rem 0 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+}
+
 .route-label {
   margin: 0 0 0.55rem;
   color: var(--secondary);
@@ -755,6 +813,235 @@ button:disabled {
 .today-summary {
   margin: 0;
   line-height: 1.62;
+}
+
+.mission-list,
+.progress-review-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.mission-list {
+  margin-top: 0.9rem;
+}
+
+.mission-item,
+.review-item,
+.review-bucket-card,
+.track-card {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mission-item {
+  padding: 0.85rem 0.9rem;
+}
+
+.mission-head,
+.review-item-head,
+.track-card-head,
+.activity-bar-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.mission-head strong,
+.review-item-head strong,
+.track-card-head strong {
+  color: var(--surface-contrast);
+}
+
+.mission-copy,
+.review-item-copy,
+.track-card-copy,
+.activity-day,
+.activity-bar-meta {
+  margin: 0.28rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.mission-progress {
+  height: 10px;
+  margin-top: 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mission-progress span,
+.track-progress span,
+.activity-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.mission-progress span {
+  background: linear-gradient(135deg, var(--signal) 0%, #ff9144 100%);
+}
+
+.mission-item.is-complete {
+  border-color: rgba(64, 217, 138, 0.3);
+  background: rgba(64, 217, 138, 0.1);
+}
+
+.review-bucket-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+  margin-top: 0.9rem;
+}
+
+.review-bucket-card {
+  padding: 0.85rem 0.9rem;
+}
+
+.review-bucket-card strong {
+  display: block;
+  margin-top: 0.22rem;
+  color: var(--surface-contrast);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.review-bucket-card span {
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
+
+.progress-top-grid,
+.progress-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.progress-bottom-grid {
+  margin-top: 1rem;
+}
+
+.progress-card {
+  display: grid;
+  align-content: start;
+  gap: 0.95rem;
+}
+
+.progress-card-hero {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 107, 44, 0.14), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    var(--surface-strong);
+}
+
+.progress-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.progress-mission-wrap {
+  margin-top: 0.15rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid var(--line);
+}
+
+.progress-jump {
+  width: auto;
+}
+
+.review-item {
+  padding: 0.88rem 0.92rem;
+}
+
+.review-item-copy {
+  font-size: 0.92rem;
+}
+
+.review-item-footer,
+.track-card-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.review-item-tag,
+.track-card-tag {
+  color: var(--secondary);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.activity-timeline {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.activity-bar {
+  min-height: 190px;
+  display: grid;
+  align-content: end;
+  gap: 0.55rem;
+}
+
+.activity-bar-track {
+  min-height: 138px;
+  display: flex;
+  align-items: end;
+  padding: 0.6rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.activity-fill {
+  width: 100%;
+  min-height: 8px;
+  background: linear-gradient(180deg, var(--primary) 0%, #a8d4ff 100%);
+}
+
+.activity-day {
+  font-size: 0.8rem;
+}
+
+.activity-bar-meta {
+  margin-top: 0;
+  font-size: 0.82rem;
+}
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.track-card {
+  padding: 0.92rem;
+}
+
+.track-progress {
+  height: 10px;
+  margin-top: 0.78rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.track-progress span {
+  background: linear-gradient(135deg, var(--accent) 0%, #dfff6a 100%);
+}
+
+.track-card-footer strong {
+  color: var(--surface-contrast);
 }
 
 .surface {
@@ -1248,6 +1535,14 @@ button:disabled {
   gap: 1rem;
 }
 
+.review-priority-card {
+  margin-top: 1rem;
+}
+
+.progress-review-list.compact {
+  margin-top: 0.8rem;
+}
+
 .confusion-grid {
   display: grid;
   gap: 0.8rem;
@@ -1287,6 +1582,12 @@ button:disabled {
   margin: 0;
   max-width: 58ch;
   line-height: 1.56;
+}
+
+.footer-actions {
+  display: flex;
+  justify-content: end;
+  width: 100%;
 }
 
 .arcade-shell {
@@ -1781,6 +2082,10 @@ button:disabled {
   gap: 0.75rem;
 }
 
+.ranking-toggle {
+  margin-bottom: 0.9rem;
+}
+
 .ranking-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -2046,7 +2351,10 @@ button:disabled {
   .today-panel,
   .study-layout,
   .review-layout,
-  .surface-head {
+  .surface-head,
+  .today-deck,
+  .progress-top-grid,
+  .progress-bottom-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2204,7 +2512,7 @@ button:disabled {
 
   .main-nav-track {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.35rem;
   }
 
@@ -2222,7 +2530,8 @@ button:disabled {
     min-height: 46px;
     padding: 0.72rem 0.25rem;
     font-size: 0.88rem;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.15;
   }
 
   .train-nav button {
@@ -2250,6 +2559,21 @@ button:disabled {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.65rem;
+  }
+
+  .progress-metric-grid,
+  .track-grid,
+  .review-bucket-grid,
+  .activity-timeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .activity-bar {
+    min-height: 146px;
+  }
+
+  .activity-bar-track {
+    min-height: 100px;
   }
 
   .weak-list {
@@ -2345,6 +2669,10 @@ button:disabled {
     grid-template-columns: 1fr 1fr;
   }
 
+  .hero-install-note {
+    text-align: left;
+  }
+
   .brand-mark {
     width: 3.35rem;
     padding: 0.28rem;
@@ -2414,16 +2742,27 @@ button:disabled {
   }
 
   .today-metrics,
+  .progress-metric-grid,
   .weak-list,
   .builder-bank,
   .builder-slots {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .track-grid,
+  .review-bucket-grid,
+  .activity-timeline {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 420px) {
   .hero-actions {
     grid-template-columns: 1fr;
+  }
+
+  .main-nav-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .main-nav-track button {
@@ -2446,6 +2785,7 @@ button:disabled {
 
 @media (max-width: 360px) {
   .today-metrics,
+  .progress-metric-grid,
   .builder-bank,
   .builder-slots {
     grid-template-columns: 1fr;
