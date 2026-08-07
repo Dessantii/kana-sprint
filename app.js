@@ -1,7 +1,10 @@
 const legacyStorageKey = "kanaSprintProgressV3";
 const profileStorageKey = "kanaSprintProfilesV1";
 const sessionStorageKey = "kanaSprintSessionV1";
+const sessionMetaStorageKey = "kanaSprintSessionMetaV1";
+const cloudSessionCacheKey = "kanaSprintCloudSessionV1";
 const progressStoragePrefix = "kanaSprintProgressV4::";
+const pendingSyncPrefix = "kanaSprintPendingSyncV1::";
 const remoteSaveDelay = 420;
 const leaderboardStaleMs = 18000;
 
@@ -103,6 +106,9 @@ const trackCatalog = [
     action: { section: "arcade", arcadeScreen: "games" },
   },
 ];
+const coreTrainModes = ["recognition", "reading", "context", "phrases"];
+const extraTrainModes = ["confusion", "cloze", "dictation", "builder"];
+const quickSessionDurations = [2, 5, 10];
 
 const xpTable = {
   recognition: { correct: 10, wrong: -6 },
@@ -892,6 +898,24 @@ function createArcadeState() {
   };
 }
 
+function createQuickSessionState() {
+  return {
+    durationMinutes: 5,
+    active: false,
+    startedAt: 0,
+    endsAt: 0,
+    actionId: "adaptive",
+    eventCount: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    xpDelta: 0,
+    startXp: 0,
+    startPracticedCount: 0,
+    startWeakIds: [],
+    lastSummary: null,
+  };
+}
+
 function createShurikenState() {
   return {
     running: false,
@@ -966,6 +990,25 @@ const elements = {
   masteredCount: document.getElementById("mastered-count"),
   reviewCount: document.getElementById("review-count"),
   bestStreak: document.getElementById("best-streak"),
+  todayPrimaryKicker: document.getElementById("today-primary-kicker"),
+  todayPrimaryTitle: document.getElementById("today-primary-title"),
+  todayPrimaryCopy: document.getElementById("today-primary-copy"),
+  todayPrimaryAction: document.getElementById("today-primary-action"),
+  todayPlanPill: document.getElementById("today-plan-pill"),
+  todayPlanList: document.getElementById("today-plan-list"),
+  sessionBanner: document.getElementById("session-banner"),
+  sessionBannerKicker: document.getElementById("session-banner-kicker"),
+  sessionBannerTitle: document.getElementById("session-banner-title"),
+  sessionBannerMeta: document.getElementById("session-banner-meta"),
+  sessionTimeLeft: document.getElementById("session-time-left"),
+  sessionProgressLabel: document.getElementById("session-progress-label"),
+  sessionProgressFill: document.getElementById("session-progress-fill"),
+  sessionStop: document.getElementById("session-stop"),
+  sessionDurationPill: document.getElementById("session-duration-pill"),
+  sessionStartCopy: document.getElementById("session-start-copy"),
+  sessionStartTarget: document.getElementById("session-start-target"),
+  sessionDurationToggle: document.getElementById("session-duration-toggle"),
+  sessionStart: document.getElementById("session-start"),
   dailyStreakPill: document.getElementById("daily-streak-pill"),
   todayDuePill: document.getElementById("today-due-pill"),
   todayMissionList: document.getElementById("today-mission-list"),
@@ -1083,6 +1126,7 @@ const elements = {
   activitySummary: document.getElementById("activity-summary"),
   activityTimeline: document.getElementById("activity-timeline"),
   trackGrid: document.getElementById("track-grid"),
+  toggleTrainNav: document.getElementById("toggle-train-nav"),
   resetProgress: document.getElementById("reset-progress"),
   arcadeShell: document.getElementById("arcade-shell"),
   arcadeLevel: document.getElementById("arcade-level"),
@@ -1133,16 +1177,31 @@ const elements = {
   pairsGrid: document.getElementById("pairs-grid"),
   pairsStatus: document.getElementById("pairs-status"),
   storageCopy: document.getElementById("storage-copy"),
+  sessionSummary: document.getElementById("session-summary"),
+  sessionSummaryKicker: document.getElementById("session-summary-kicker"),
+  sessionSummaryTitle: document.getElementById("session-summary-title"),
+  sessionSummaryCopy: document.getElementById("session-summary-copy"),
+  sessionSummaryTime: document.getElementById("session-summary-time"),
+  sessionSummaryXp: document.getElementById("session-summary-xp"),
+  sessionSummaryImprovedLabel: document.getElementById("session-summary-improved-label"),
+  sessionSummaryImproved: document.getElementById("session-summary-improved"),
+  sessionSummaryWeakLabel: document.getElementById("session-summary-weak-label"),
+  sessionSummaryWeak: document.getElementById("session-summary-weak"),
+  sessionSummaryNext: document.getElementById("session-summary-next"),
+  sessionSummaryClose: document.getElementById("session-summary-close"),
 };
 
 const runtime = {
   mode: "local",
   bridge: null,
+  sessionReady: false,
   saveTimer: 0,
   savePromise: Promise.resolve(),
+  reconnectPromise: null,
   leaderboardPromise: null,
   installPrompt: null,
   serviceWorkerReady: false,
+  quickSessionTimer: 0,
 };
 
 const state = {
@@ -1154,9 +1213,11 @@ const state = {
   phraseCategory: "saudacoes",
   currentUser: null,
   currentUserId: null,
+  currentUserCloudBacked: false,
   authMode: "login",
   storageMode: "local",
   syncStatus: "local",
+  trainNavExpanded: false,
   audioRate: 0.9,
   audioRepeat: 1,
   rankingView: "overall",
@@ -1174,6 +1235,7 @@ const state = {
   builderStreak: 0,
   progress: defaultProgress(),
   arcade: createArcadeState(),
+  quickSession: createQuickSessionState(),
   recent: {
     quiz: [],
     reading: [],
@@ -1201,22 +1263,9 @@ async function bootstrap() {
   registerPwaFeatures();
   await initializeRuntime();
 
-  if (isCloudMode()) {
-    const restoredSession = await restoreSharedSession();
-    if (restoredSession) {
-      applyAuthenticatedState(restoredSession, { refresh: false });
-    }
-  } else {
-    const restoredUser = restoreLocalSession();
-    if (restoredUser) {
-      applyAuthenticatedState(
-        {
-          userName: restoredUser,
-          progress: loadProgress(restoredUser),
-        },
-        { refresh: false }
-      );
-    }
+  const restoredSession = await restoreInitialSession();
+  if (restoredSession) {
+    applyAuthenticatedState(restoredSession, { refresh: false });
   }
   ensureSelection();
   ensureDailyState();
@@ -1233,9 +1282,31 @@ async function bootstrap() {
 
   if (state.currentUser) {
     hideAuthGate();
+    if (hasPendingSync() && canUseCloudSync()) {
+      void syncPendingProgress();
+    }
   } else {
     showAuthGate("login");
   }
+}
+
+async function restoreInitialSession() {
+  if (canUseCloudSync()) {
+    const restoredSession = await restoreSharedSession();
+    if (restoredSession) {
+      const pendingSync = loadPendingSync(restoredSession.userName);
+      if (pendingSync) {
+        return {
+          ...restoredSession,
+          progress: pendingSync.progress,
+          pendingSync: true,
+        };
+      }
+      return restoredSession;
+    }
+  }
+
+  return restoreLocalSession();
 }
 
 async function initializeRuntime() {
@@ -1243,6 +1314,7 @@ async function initializeRuntime() {
   if (!config.supabaseUrl || !config.supabaseAnonKey) {
     state.storageMode = "local";
     runtime.mode = "local";
+    runtime.sessionReady = false;
     setSyncStatus("local");
     return;
   }
@@ -1254,14 +1326,16 @@ async function initializeRuntime() {
       anonKey: config.supabaseAnonKey,
     });
     runtime.mode = "cloud";
-    state.storageMode = "cloud";
-    setSyncStatus("ready");
+    runtime.sessionReady = false;
+    state.storageMode = canUseCloudSync() ? "cloud" : "local";
+    setSyncStatus(canUseCloudSync() ? "ready" : "local");
   } catch (error) {
     console.error("Nao foi possivel iniciar o modo online.", error);
     runtime.mode = "local";
     runtime.bridge = null;
+    runtime.sessionReady = false;
     state.storageMode = "local";
-    setSyncStatus("error");
+    setSyncStatus(navigator.onLine === false ? "local" : "error");
   }
 }
 
@@ -1321,6 +1395,14 @@ function registerPwaFeatures() {
     renderInstallChrome();
   });
 
+  window.addEventListener("online", () => {
+    void handleConnectivityChange(true);
+  });
+
+  window.addEventListener("offline", () => {
+    handleConnectivityChange(false);
+  });
+
   window.matchMedia?.("(display-mode: standalone)")?.addEventListener("change", () => {
     renderInstallChrome();
   });
@@ -1340,7 +1422,282 @@ async function requestInstallPrompt() {
 }
 
 function isCloudMode() {
+  return canUseCloudSync() && state.storageMode === "cloud";
+}
+
+function hasCloudBridge() {
   return runtime.mode === "cloud" && Boolean(runtime.bridge);
+}
+
+function canUseCloudSync() {
+  return hasCloudBridge() && navigator.onLine !== false;
+}
+
+function readCloudSessionSnapshot() {
+  try {
+    const raw = localStorage.getItem(cloudSessionCacheKey);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed.userName === "string" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function getCachedCloudIdentity(userName = state.currentUser) {
+  const cached = readCloudSessionSnapshot();
+  if (!cached?.userName) {
+    return null;
+  }
+  if (userName && cached.userName !== userName) {
+    return null;
+  }
+  return cached;
+}
+
+function cacheCloudSessionSnapshot(sessionData) {
+  if (!sessionData?.userName) {
+    return;
+  }
+  const fallback = getCachedCloudIdentity(sessionData.userName);
+  localStorage.setItem(
+    cloudSessionCacheKey,
+    JSON.stringify({
+      userId: sessionData.userId || fallback?.userId || null,
+      userName: sessionData.userName,
+      cachedAt: Date.now(),
+    })
+  );
+}
+
+function clearCloudSessionSnapshot() {
+  localStorage.removeItem(cloudSessionCacheKey);
+}
+
+function isCloudBackedUser(userName = state.currentUser) {
+  if (!userName) {
+    return false;
+  }
+  if (userName === state.currentUser) {
+    return Boolean(state.currentUserCloudBacked);
+  }
+  return Boolean(getCachedCloudIdentity(userName));
+}
+
+function readSessionMeta() {
+  try {
+    const raw = localStorage.getItem(sessionMetaStorageKey);
+    if (!raw) {
+      const legacyUserName = localStorage.getItem(sessionStorageKey);
+      return legacyUserName ? { userName: legacyUserName, cloudBacked: false } : null;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed.userName !== "string") {
+      return null;
+    }
+
+    return {
+      userName: parsed.userName,
+      cloudBacked: Boolean(parsed.cloudBacked),
+    };
+  } catch {
+    const legacyUserName = localStorage.getItem(sessionStorageKey);
+    return legacyUserName ? { userName: legacyUserName, cloudBacked: false } : null;
+  }
+}
+
+function getPendingSyncKey(userName = state.currentUser) {
+  return userName ? `${pendingSyncPrefix}${userName}` : null;
+}
+
+function loadPendingSync(userName = state.currentUser) {
+  const key = getPendingSyncKey(userName);
+  if (!key) {
+    return null;
+  }
+
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+    const resolvedUser = parsed.userName || userName;
+    const normalizedProgress = normalizeLoadedProgress(parsed.progress);
+    return {
+      userId: parsed.userId || getCachedCloudIdentity(resolvedUser)?.userId || null,
+      userName: resolvedUser,
+      progress: normalizedProgress,
+      summary:
+        parsed.summary && typeof parsed.summary === "object"
+          ? parsed.summary
+          : summarizeProgress(normalizedProgress),
+      queuedAt: Number(parsed.queuedAt || Date.now()),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function hasPendingSync(userName = state.currentUser) {
+  return Boolean(loadPendingSync(userName));
+}
+
+function createSyncSnapshot(progress = state.progress, options = {}) {
+  const userName = options.userName || state.currentUser;
+  const userId = options.userId || state.currentUserId || getCachedCloudIdentity(userName)?.userId;
+  const snapshot = JSON.parse(JSON.stringify(progress || defaultProgress()));
+  return {
+    userId: userId || null,
+    userName,
+    progress: snapshot,
+    summary: summarizeProgress(snapshot),
+    queuedAt: Date.now(),
+  };
+}
+
+function queuePendingSync(snapshot) {
+  if (!snapshot?.userName) {
+    return;
+  }
+  localStorage.setItem(getPendingSyncKey(snapshot.userName), JSON.stringify(snapshot));
+}
+
+function clearPendingSync(userName = state.currentUser) {
+  const key = getPendingSyncKey(userName);
+  if (key) {
+    localStorage.removeItem(key);
+  }
+}
+
+function resolveStorageMode() {
+  return state.currentUser &&
+    isCloudBackedUser(state.currentUser) &&
+    runtime.sessionReady &&
+    canUseCloudSync()
+    ? "cloud"
+    : "local";
+}
+
+function refreshSyncState() {
+  state.storageMode = resolveStorageMode();
+
+  if (!state.currentUser) {
+    setSyncStatus(canUseCloudSync() ? "ready" : "local");
+    return;
+  }
+
+  if (state.storageMode === "cloud") {
+    setSyncStatus(hasPendingSync() ? "queued" : "synced");
+    return;
+  }
+
+  setSyncStatus("local");
+}
+
+async function handleConnectivityChange(isOnline) {
+  if (!isOnline) {
+    state.storageMode = "local";
+    setSyncStatus("local");
+    return;
+  }
+
+  if (state.currentUser && isCloudBackedUser(state.currentUser)) {
+    void syncPendingProgress();
+    return;
+  }
+
+  if (!hasCloudBridge()) {
+    await initializeRuntime();
+  }
+  refreshSyncState();
+}
+
+async function syncPendingProgress() {
+  if (!state.currentUser || !isCloudBackedUser(state.currentUser)) {
+    refreshSyncState();
+    return;
+  }
+
+  if (runtime.reconnectPromise) {
+    return runtime.reconnectPromise;
+  }
+
+  runtime.reconnectPromise = (async () => {
+    if (!canUseCloudSync()) {
+      if (!hasCloudBridge()) {
+        await initializeRuntime();
+      }
+      if (!canUseCloudSync()) {
+        refreshSyncState();
+        return;
+      }
+    }
+
+    const pending = loadPendingSync();
+    setSyncStatus(pending ? "saving" : "ready");
+    const restoredSession = await restoreSharedSession({ quiet: true });
+    if (!restoredSession || restoredSession.userName !== state.currentUser) {
+      refreshSyncState();
+      return;
+    }
+
+    cacheCloudSessionSnapshot(restoredSession);
+    state.currentUserId = restoredSession.userId || state.currentUserId;
+    if (Array.isArray(restoredSession.leaderboard)) {
+      state.sharedRanking = restoredSession.leaderboard;
+      state.leaderboardLoadedAt = Date.now();
+    }
+    state.storageMode = "cloud";
+
+    const queued = pending || loadPendingSync();
+    if (!queued) {
+      setSyncStatus("synced");
+      if (state.currentUser) {
+        renderIdentity();
+      }
+      return;
+    }
+
+    await runtime.bridge.saveProgress({
+      userId: restoredSession.userId || queued.userId || state.currentUserId,
+      userName: queued.userName || restoredSession.userName,
+      progress: queued.progress,
+      summary: queued.summary || summarizeProgress(queued.progress),
+    });
+
+    state.progress = normalizeLoadedProgress(queued.progress);
+    state.currentUserCloudBacked = true;
+    clearPendingSync(queued.userName || state.currentUser);
+    state.leaderboardLoadedAt = 0;
+    setSyncStatus("synced");
+    if (state.section === "arcade" && state.arcade.screen === "records") {
+      await refreshSharedLeaderboard(true);
+    }
+    if (state.currentUser) {
+      renderAll();
+    }
+  })()
+    .catch((error) => {
+      console.error("Falha ao sincronizar o progresso pendente.", error);
+      setSyncStatus(navigator.onLine === false ? "local" : "queued");
+    })
+    .finally(() => {
+      runtime.reconnectPromise = null;
+      if (state.currentUser) {
+        renderIdentity();
+      } else {
+        renderStorageChrome();
+      }
+    });
+
+  return runtime.reconnectPromise;
 }
 
 function normalizeLoadedProgress(progress) {
@@ -1566,6 +1923,14 @@ function recordActivityEvent({
     Number(state.progress.bestDailyStreak || 0),
     getDisplayDailyStreak()
   );
+
+  if (state.quickSession.active && (success !== null || xpDelta !== 0)) {
+    state.quickSession.eventCount += 1;
+    state.quickSession.correctCount += Number(success === true);
+    state.quickSession.wrongCount += Number(success === false);
+    state.quickSession.xpDelta += Number.isFinite(Number(xpDelta)) ? Number(xpDelta) : 0;
+    renderQuickSession();
+  }
 }
 
 function getActivityWindowEntries(log = state.progress.activityLog) {
@@ -1630,14 +1995,28 @@ async function handleLoginSubmit() {
     return;
   }
 
-  if (isCloudMode()) {
+  if (canUseCloudSync()) {
     try {
       setSyncStatus("saving");
       const restoredSession = await runtime.bridge.signIn(userName, password);
-      applyAuthenticatedState(restoredSession);
+      const pendingSync = loadPendingSync(userName);
+      runtime.sessionReady = true;
+      applyAuthenticatedState(
+        pendingSync
+          ? {
+              ...restoredSession,
+              progress: pendingSync.progress,
+              cloudBacked: true,
+            }
+          : restoredSession
+      );
       elements.loginPassword.value = "";
       elements.authFeedback.textContent = "";
-      setSyncStatus("synced");
+      if (pendingSync) {
+        void syncPendingProgress();
+      } else {
+        refreshSyncState();
+      }
       return;
     } catch (error) {
       console.error(error);
@@ -1673,7 +2052,7 @@ async function handleLoginSubmit() {
 async function handleSignupSubmit() {
   const userName = normalizeProfileName(elements.signupName?.value || "");
   const password = elements.signupPassword?.value || "";
-  const minPasswordLength = isCloudMode() ? 6 : 4;
+  const minPasswordLength = canUseCloudSync() ? 6 : 4;
 
   if (userName.length < 3) {
     elements.authFeedback.textContent = "Escolha um nome com pelo menos 3 caracteres.";
@@ -1685,7 +2064,7 @@ async function handleSignupSubmit() {
     return;
   }
 
-  if (isCloudMode()) {
+  if (canUseCloudSync()) {
     try {
       setSyncStatus("saving");
       const localSeed = loadProgress(userName);
@@ -1694,10 +2073,12 @@ async function handleSignupSubmit() {
       if (createdSession.pendingConfirmation) {
         elements.authFeedback.textContent =
           "No Supabase, desative a confirmacao por email para usar apenas nome e senha.";
+        runtime.sessionReady = false;
         setSyncStatus("ready");
         return;
       }
 
+      runtime.sessionReady = true;
       applyAuthenticatedState({
         ...createdSession,
         progress: hasStoredProgress(localSeed) ? localSeed : createdSession.progress,
@@ -1705,7 +2086,7 @@ async function handleSignupSubmit() {
       await saveProgress({ immediate: true });
       elements.signupPassword.value = "";
       elements.authFeedback.textContent = "";
-      setSyncStatus("synced");
+      refreshSyncState();
       return;
     } catch (error) {
       console.error(error);
@@ -1742,25 +2123,38 @@ async function handleSignupSubmit() {
 
 function applyAuthenticatedState(sessionData, options = {}) {
   const { refresh = true } = options;
+  const cloudBacked = Boolean(
+    sessionData.userId || sessionData.offlineFallback || sessionData.cloudBacked
+  );
   state.currentUser = sessionData.userName;
-  state.currentUserId = sessionData.userId || null;
+  state.currentUserCloudBacked = cloudBacked;
+  state.currentUserId =
+    sessionData.userId || (cloudBacked ? getCachedCloudIdentity(sessionData.userName)?.userId : null) || null;
   state.progress = normalizeLoadedProgress(sessionData.progress);
   if (Array.isArray(sessionData.leaderboard)) {
     state.sharedRanking = sessionData.leaderboard;
     state.leaderboardLoadedAt = Date.now();
   }
-  persistSession(sessionData.userName);
+  if (cloudBacked) {
+    cacheCloudSessionSnapshot({
+      userId: state.currentUserId,
+      userName: sessionData.userName,
+    });
+  }
+  persistSession(sessionData.userName, { cloudBacked });
   hideAuthGate();
   if (refresh) {
     refreshPracticeState();
   }
+  refreshSyncState();
   renderIdentity();
 }
 
 async function logoutCurrentUser() {
   stopArcadeGames();
+  clearQuickSessionRuntime();
   await flushPendingProgressSave();
-  if (isCloudMode()) {
+  if (canUseCloudSync()) {
     try {
       await runtime.bridge.signOut();
     } catch (error) {
@@ -1768,14 +2162,19 @@ async function logoutCurrentUser() {
     }
   }
   clearSession();
+  clearCloudSessionSnapshot();
+  runtime.sessionReady = false;
   state.currentUser = null;
   state.currentUserId = null;
+  state.currentUserCloudBacked = false;
   state.progress = defaultProgress();
   state.sharedRanking = [];
   state.leaderboardLoadedAt = 0;
   state.arcade = createArcadeState();
+  state.quickSession = createQuickSessionState();
   state.section = "today";
-  setSyncStatus(isCloudMode() ? "ready" : "local");
+  state.storageMode = "local";
+  setSyncStatus(canUseCloudSync() ? "ready" : "local");
   renderAll();
   renderIdentity();
   showAuthGate("login");
@@ -1796,37 +2195,49 @@ function renderIdentity() {
 }
 
 function renderStorageChrome() {
+  const sharedAccount = Boolean(state.currentUser && isCloudBackedUser(state.currentUser));
+  const cloudActive = state.storageMode === "cloud";
+  const cloudReady = canUseCloudSync();
+
   if (elements.authKicker) {
-    elements.authKicker.textContent = isCloudMode() ? "Conta sincronizada" : "Perfil local";
+    elements.authKicker.textContent =
+      cloudActive || cloudReady ? "Conta sincronizada" : "Perfil local";
   }
   if (elements.authCopy) {
-    elements.authCopy.textContent = isCloudMode()
+    elements.authCopy.textContent = cloudActive || cloudReady
       ? "Entre com nome e senha. Seu progresso e ranking ficam sincronizados entre celular e PC."
-      : "Entre com nome e senha. Sem Supabase, o app continua funcionando neste navegador.";
+      : sharedAccount
+        ? "Modo local ativo neste aparelho. O progresso continua salvo aqui e volta a sincronizar depois."
+        : "Entre com nome e senha. Sem Supabase, o app continua funcionando neste navegador.";
   }
   if (elements.storageCopy) {
-    elements.storageCopy.textContent = isCloudMode()
-      ? "Seu progresso esta sendo sincronizado com a nuvem. Se o audio nao falar, o resto do treino continua normalmente."
-      : "Progresso salvo neste navegador. Se o audio nao falar, o resto do treino continua normalmente.";
+    elements.storageCopy.textContent = cloudActive
+      ? "Seu progresso esta sendo sincronizado com a nuvem. Se a internet cair, o aparelho continua guardando tudo."
+      : sharedAccount
+        ? "Modo local ativo: o aparelho guarda seu progresso offline e sincroniza quando a internet voltar."
+        : cloudReady
+          ? "Quando voce entrar, o progresso pode sincronizar entre aparelhos. Se o audio nao falar, o treino continua normalmente."
+          : "Progresso salvo neste navegador. Se o audio nao falar, o resto do treino continua normalmente.";
   }
   if (elements.resetProgress) {
-    elements.resetProgress.textContent = isCloudMode()
+    elements.resetProgress.textContent = cloudActive || sharedAccount
       ? "Zerar meu progresso"
       : "Zerar progresso salvo";
   }
   if (elements.rankingKicker) {
-    elements.rankingKicker.textContent = isCloudMode() ? "Ranking compartilhado" : "Ranking local";
+    elements.rankingKicker.textContent = cloudActive ? "Ranking compartilhado" : "Ranking do aparelho";
   }
   if (elements.rankingHeading) {
-    elements.rankingHeading.textContent = isCloudMode()
+    elements.rankingHeading.textContent = cloudActive
       ? "Melhores perfis da turma"
-      : "Perfis deste navegador";
+      : "Perfis salvos neste aparelho";
   }
   if (elements.syncBadge) {
     elements.syncBadge.className = "sync-badge";
     const labels = {
       local: "Modo local",
       ready: "Nuvem pronta",
+      queued: "Fila local",
       saving: "Sincronizando",
       synced: "Sincronizado",
       error: "Falha na sync",
@@ -1834,6 +2245,7 @@ function renderStorageChrome() {
     const classes = {
       local: "is-local",
       ready: "is-cloud",
+      queued: "is-pending",
       saving: "is-saving",
       synced: "is-synced",
       error: "is-error",
@@ -1872,38 +2284,94 @@ function getCloudErrorMessage(error, fallbackMessage) {
   return fallbackMessage;
 }
 
-async function restoreSharedSession() {
-  if (!runtime.bridge) {
+async function restoreSharedSession(options = {}) {
+  const { quiet = false } = options;
+  if (!runtime.bridge || navigator.onLine === false) {
     return null;
   }
 
   try {
-    setSyncStatus("saving");
+    if (!quiet) {
+      setSyncStatus("saving");
+    }
     const restoredSession = await runtime.bridge.restoreSession();
-    setSyncStatus(restoredSession ? "synced" : "ready");
+    runtime.sessionReady = Boolean(restoredSession);
+    if (restoredSession?.userName) {
+      cacheCloudSessionSnapshot(restoredSession);
+    }
+    if (!quiet) {
+      setSyncStatus(
+        restoredSession
+          ? loadPendingSync(restoredSession.userName)
+            ? "queued"
+            : "synced"
+          : "ready"
+      );
+    }
     return restoredSession;
   } catch (error) {
     console.error("Falha ao restaurar a sessao online.", error);
-    setSyncStatus("error");
+    runtime.sessionReady = false;
+    if (!quiet) {
+      setSyncStatus(navigator.onLine === false ? "local" : "error");
+    }
     return null;
   }
 }
 
 function restoreLocalSession() {
-  const userName = localStorage.getItem(sessionStorageKey);
-  if (!userName) {
+  const sessionMeta = readSessionMeta();
+  if (!sessionMeta?.userName) {
     return null;
   }
+  const { userName, cloudBacked } = sessionMeta;
   const exists = loadProfiles().some((profile) => profile.userName === userName);
-  return exists ? userName : null;
+  const cachedCloud = getCachedCloudIdentity(userName);
+
+  if (cloudBacked && cachedCloud) {
+    return {
+      userName: cachedCloud.userName,
+      userId: cachedCloud.userId || null,
+      progress: loadProgress(cachedCloud.userName),
+      offlineFallback: true,
+      cloudBacked: true,
+    };
+  }
+
+  if (exists) {
+    return {
+      userName,
+      progress: loadProgress(userName),
+      cloudBacked: false,
+    };
+  }
+  if (!cachedCloud) {
+    return null;
+  }
+  return {
+    userName: cachedCloud.userName,
+    userId: cachedCloud.userId || null,
+    progress: loadProgress(cachedCloud.userName),
+    offlineFallback: true,
+    cloudBacked: true,
+  };
 }
 
-function persistSession(userName) {
+function persistSession(userName, options = {}) {
+  const { cloudBacked = state.currentUserCloudBacked } = options;
   localStorage.setItem(sessionStorageKey, userName);
+  localStorage.setItem(
+    sessionMetaStorageKey,
+    JSON.stringify({
+      userName,
+      cloudBacked: Boolean(cloudBacked),
+    })
+  );
 }
 
 function clearSession() {
   localStorage.removeItem(sessionStorageKey);
+  localStorage.removeItem(sessionMetaStorageKey);
 }
 
 function loadProfiles() {
@@ -1981,6 +2449,12 @@ function bindControls() {
   });
 
   document.body.addEventListener("click", (event) => {
+    const todayActionButton = event.target.closest("[data-today-action]");
+    if (todayActionButton) {
+      runTodayAction(todayActionButton.dataset.todayAction);
+      return;
+    }
+
     const arcadeScreenButton = event.target.closest("[data-arcade-screen]");
     if (arcadeScreenButton) {
       setSection("arcade");
@@ -2005,6 +2479,9 @@ function bindControls() {
       const button = event.target.closest("[data-train-target]");
       if (!button) {
         return;
+      }
+      if (extraTrainModes.includes(button.dataset.trainTarget)) {
+        state.trainNavExpanded = true;
       }
       state.trainMode = button.dataset.trainTarget;
       state.section = "training";
@@ -2048,6 +2525,59 @@ function bindControls() {
     setSection("review");
   });
   elements.clearFocus.addEventListener("click", () => setFocusMode("all"));
+
+  elements.toggleTrainNav?.addEventListener("click", () => {
+    state.trainNavExpanded = !state.trainNavExpanded;
+    renderTrainNav();
+  });
+
+  elements.sessionDurationToggle?.addEventListener("click", (event) => {
+    if (state.quickSession.active) {
+      return;
+    }
+
+    const button = event.target.closest("[data-session-duration]");
+    if (!button) {
+      return;
+    }
+
+    const duration = Number(button.dataset.sessionDuration);
+    if (!quickSessionDurations.includes(duration)) {
+      return;
+    }
+
+    state.quickSession.durationMinutes = duration;
+    renderQuickSession();
+  });
+
+  elements.sessionStart?.addEventListener("click", () => {
+    startQuickSession();
+  });
+
+  elements.sessionStop?.addEventListener("click", () => {
+    finishQuickSession({ completed: false });
+  });
+
+  elements.sessionSummaryClose?.addEventListener("click", () => {
+    closeQuickSessionSummary();
+  });
+
+  elements.sessionSummaryNext?.addEventListener("click", () => {
+    const actionId = elements.sessionSummaryNext.dataset.todayAction || "";
+    closeQuickSessionSummary();
+    if (actionId) {
+      runTodayAction(actionId);
+      return;
+    }
+    setSection("today");
+    renderAll();
+  });
+
+  elements.sessionSummary?.addEventListener("click", (event) => {
+    if (event.target === elements.sessionSummary) {
+      closeQuickSessionSummary();
+    }
+  });
 
   elements.audioRateToggle?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-audio-rate]");
@@ -2308,8 +2838,10 @@ function bindControls() {
   });
 
   elements.resetProgress.addEventListener("click", async () => {
-    const message = isCloudMode()
-      ? "Zerar o seu progresso sincronizado desta conta?"
+    const message = state.currentUser && isCloudBackedUser(state.currentUser)
+      ? state.storageMode === "cloud"
+        ? "Zerar o seu progresso sincronizado desta conta?"
+        : "Zerar o progresso salvo neste aparelho e sincronizar essa limpeza quando a internet voltar?"
       : "Zerar o progresso salvo deste navegador?";
     if (!window.confirm(message)) {
       return;
@@ -2369,6 +2901,12 @@ function bindControls() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       void flushPendingProgressSave();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.quickSession.lastSummary) {
+      closeQuickSessionSummary();
     }
   });
 
@@ -2616,6 +3154,9 @@ function setSection(section, trainTarget) {
   state.section = section;
   if (trainTarget) {
     state.trainMode = trainTarget;
+    if (extraTrainModes.includes(trainTarget)) {
+      state.trainNavExpanded = true;
+    }
   }
   renderSectionNav();
   renderTrainNav();
@@ -2694,9 +3235,22 @@ function renderTrainNav() {
     return;
   }
 
+  const expanded = state.trainNavExpanded || extraTrainModes.includes(state.trainMode);
+  state.trainNavExpanded = expanded;
+
   elements.trainNav.querySelectorAll("[data-train-target]").forEach((button) => {
+    const isExtra = button.dataset.trainPriority === "extra";
+    const shouldHide = isExtra && !expanded;
+    button.hidden = shouldHide;
     button.classList.toggle("is-active", button.dataset.trainTarget === state.trainMode);
   });
+
+  if (elements.toggleTrainNav) {
+    const hiddenCount = extraTrainModes.length;
+    elements.toggleTrainNav.textContent = expanded
+      ? "Mostrar menos modos"
+      : `Ver outros treinos (${hiddenCount})`;
+  }
 
   document.querySelectorAll("[data-train-panel]").forEach((panel) => {
     panel.classList.toggle("is-active", panel.dataset.trainPanel === state.trainMode);
@@ -2927,7 +3481,7 @@ function renderArcadeRecords() {
     elements.arcadeRecordGrid.appendChild(article);
   });
 
-  if (isCloudMode() && state.currentUser) {
+  if (state.storageMode === "cloud" && state.currentUser) {
     void refreshSharedLeaderboard();
   }
   renderRanking();
@@ -3053,18 +3607,53 @@ function getArcadeClearedCount() {
     Number((state.progress.bestArcadePairs || 0) > 0);
 }
 
-function getLocalLeaderboard() {
-  return loadProfiles()
-    .map((profile) => {
-      const progress = loadProgress(profile.userName);
-      const summary = summarizeProgress(progress);
-      return {
-        userName: profile.userName,
-        progress,
-        summary,
-      };
+function getStoredProgressUserNames() {
+  const userNames = new Set();
+
+  try {
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key || !key.startsWith(progressStoragePrefix)) {
+        continue;
+      }
+      userNames.add(key.slice(progressStoragePrefix.length));
+    }
+  } catch {
+    return [];
+  }
+
+  return [...userNames];
+}
+
+function getDeviceLeaderboard() {
+  const deviceUserNames = new Set([
+    ...loadProfiles().map((profile) => profile.userName),
+    ...getStoredProgressUserNames(),
+  ]);
+
+  const entries = new Map(
+    [...deviceUserNames].map((userName) => {
+      const progress = loadProgress(userName);
+      return [
+        userName,
+        {
+          userName,
+          progress,
+          summary: summarizeProgress(progress),
+        },
+      ];
     })
-    .sort((left, right) => left.userName.localeCompare(right.userName));
+  );
+
+  if (state.currentUser && !entries.has(state.currentUser)) {
+    entries.set(state.currentUser, {
+      userName: state.currentUser,
+      progress: normalizeLoadedProgress(state.progress),
+      summary: summarizeProgress(state.progress),
+    });
+  }
+
+  return [...entries.values()].sort((left, right) => left.userName.localeCompare(right.userName));
 }
 
 function sortLeaderboardEntries(entries) {
@@ -3094,7 +3683,7 @@ function renderRanking() {
   }
 
   const leaderboard = sortLeaderboardEntries(
-    isCloudMode() ? state.sharedRanking : getLocalLeaderboard()
+    state.storageMode === "cloud" ? state.sharedRanking : getDeviceLeaderboard()
   );
   const isWeekly = state.rankingView === "weekly";
   elements.rankingCount.textContent = `${leaderboard.length} perfis`;
@@ -3111,9 +3700,9 @@ function renderRanking() {
   if (!leaderboard.length) {
     const empty = document.createElement("p");
     empty.className = "arcade-record-note";
-    empty.textContent = isCloudMode()
+    empty.textContent = state.storageMode === "cloud"
       ? "Entre em uma conta para carregar o ranking compartilhado."
-      : "Crie o primeiro perfil para comecar o ranking local.";
+      : "Pratique neste aparelho para comecar o ranking local.";
     elements.arcadeRankingList.appendChild(empty);
     return;
   }
@@ -3138,7 +3727,7 @@ function renderRanking() {
 }
 
 async function refreshSharedLeaderboard(force = false) {
-  if (!isCloudMode() || !runtime.bridge || !state.currentUser) {
+  if (!canUseCloudSync() || !runtime.bridge || !state.currentUser || state.storageMode !== "cloud") {
     return;
   }
   if (runtime.leaderboardPromise) {
@@ -3934,6 +4523,150 @@ function renderTrackGrid() {
   });
 }
 
+function buildTodayActionPlan(summary, reviewSnapshot) {
+  const practicedCount = Number(summary.practicedCount || 0);
+  const weakCount = getWeakEntries(getStudyPool()).length;
+  const steps = [];
+  const used = new Set();
+
+  const pushStep = (step) => {
+    if (!step || used.has(step.actionId) || steps.length >= 3) {
+      return;
+    }
+    used.add(step.actionId);
+    steps.push(step);
+  };
+
+  let primary;
+
+  if (reviewSnapshot.dueToday > 0) {
+    primary = {
+      kicker: "Agora",
+      title: `Revisar ${reviewSnapshot.dueToday} itens que venceram`,
+      copy: "Comece pela fila urgente para limpar o que esta pedindo volta antes de abrir outros modos.",
+      button: "Continuar pela revisao",
+      actionId: "review",
+    };
+    pushStep({
+      title: "Limpar a fila urgente",
+      copy: `${reviewSnapshot.dueToday} itens estao vencendo agora e precisam aparecer primeiro.`,
+      button: "Revisar",
+      actionId: "review",
+    });
+  } else if (weakCount > 0) {
+    primary = {
+      kicker: "Agora",
+      title: "Atacar os pontos que mais travam",
+      copy: `${weakCount} kana ainda estao oscilando. Entre por eles primeiro e deixe o treino mais produtivo.`,
+      button: "Treinar meus erros",
+      actionId: "weak-reading",
+    };
+    pushStep({
+      title: "Forcar seus gargalos",
+      copy: `${weakCount} kana estao voltando como erro com mais frequencia.`,
+      button: "Abrir",
+      actionId: "weak-reading",
+    });
+  } else if (practicedCount === 0) {
+    primary = {
+      kicker: "Comeco",
+      title: "Abrir o mapa base antes do primeiro treino",
+      copy: "Veja as familias principais primeiro para entrar no treino com menos travas.",
+      button: "Comecar pelo mapa",
+      actionId: "study-map",
+    };
+    pushStep({
+      title: "Passar pelo mapa rapido",
+      copy: "Uma olhada nas familias base ja melhora bastante o primeiro bloco.",
+      button: "Abrir",
+      actionId: "study-map",
+    });
+  } else {
+    primary = {
+      kicker: "Agora",
+      title: "Ganhar ritmo com o treino adaptativo",
+      copy: "O app ja puxa o que precisa aparecer mais e segura o que voce esta acertando com folga.",
+      button: "Continuar de onde parei",
+      actionId: "adaptive",
+    };
+    pushStep({
+      title: "Entrar no bloco adaptativo",
+      copy: "Bom para destravar o estudo sem precisar escolher entre muitos modos.",
+      button: "Abrir",
+      actionId: "adaptive",
+    });
+  }
+
+  pushStep({
+    title: "Fazer uma leitura curta",
+    copy: "Palavras menores ajudam a entrar no ritmo antes de frases mais longas.",
+    button: "Treinar",
+    actionId: weakCount > 0 ? "weak-reading" : "reading",
+  });
+
+  pushStep({
+    title: state.level === "base" ? "Fechar um bloco de contexto" : "Fechar uma frase por tema",
+    copy:
+      state.level === "base"
+        ? "Use expressoes e palavras maiores para juntar os kana em leitura real."
+        : "Puxe frases maiores para ligar leitura, memoria e vocabulario.",
+    button: "Abrir",
+    actionId: state.level === "base" ? "context" : "phrases",
+  });
+
+  pushStep({
+    title: "Respirar com o mapa",
+    copy: "Se cansar do treino, volte ao estudo visual para consolidar familia e forma.",
+    button: "Estudar",
+    actionId: "study-map",
+  });
+
+  return {
+    primary,
+    steps: steps.slice(0, 3),
+  };
+}
+
+function renderTodayFocus(summary, reviewSnapshot) {
+  if (!elements.todayPrimaryAction || !elements.todayPlanList) {
+    return;
+  }
+
+  const { primary, steps } = buildTodayActionPlan(summary, reviewSnapshot);
+
+  if (elements.todayPrimaryKicker) {
+    elements.todayPrimaryKicker.textContent = primary.kicker;
+  }
+  if (elements.todayPrimaryTitle) {
+    elements.todayPrimaryTitle.textContent = primary.title;
+  }
+  if (elements.todayPrimaryCopy) {
+    elements.todayPrimaryCopy.textContent = primary.copy;
+  }
+  elements.todayPrimaryAction.textContent = primary.button;
+  elements.todayPrimaryAction.dataset.todayAction = primary.actionId;
+  if (elements.todayPlanPill) {
+    elements.todayPlanPill.textContent = `${steps.length} passos`;
+  }
+
+  elements.todayPlanList.innerHTML = "";
+  steps.forEach((step, index) => {
+    const article = document.createElement("article");
+    article.className = "today-plan-item";
+    article.innerHTML = `
+      <span class="today-plan-step">${String(index + 1).padStart(2, "0")}</span>
+      <div class="today-plan-body">
+        <strong>${step.title}</strong>
+        <p>${step.copy}</p>
+      </div>
+      <button type="button" class="secondary-button today-plan-button" data-today-action="${step.actionId}">
+        ${step.button}
+      </button>
+    `;
+    elements.todayPlanList.appendChild(article);
+  });
+}
+
 function renderProgressDashboard() {
   const summary = summarizeProgress();
   const missions = dailyMissionCatalog.map((mission) => {
@@ -3982,8 +4715,344 @@ function renderProgressDashboard() {
   renderReviewBucketGrid(elements.progressReviewBuckets, reviewSnapshot.bucketCounts);
   renderReviewQueue(elements.progressReviewList, reviewSnapshot.queue.slice(0, 8));
   renderReviewQueue(elements.reviewPriorityList, reviewSnapshot.queue.slice(0, 5));
+  renderTodayFocus(summary, reviewSnapshot);
+  renderQuickSession(summary, reviewSnapshot);
   renderActivityTimeline();
   renderTrackGrid();
+}
+
+function runTodayAction(actionId) {
+  switch (actionId) {
+    case "review":
+      setFocusMode("weak");
+      setSection("review");
+      return;
+    case "weak-reading":
+      setFocusMode("weak");
+      setSection("training", "reading");
+      return;
+    case "adaptive":
+      setFocusMode("all");
+      setSection("training", "recognition");
+      return;
+    case "reading":
+      setFocusMode("all");
+      setSection("training", "reading");
+      return;
+    case "context":
+      setFocusMode("all");
+      setSection("training", "context");
+      return;
+    case "phrases":
+      setFocusMode("all");
+      setSection("training", "phrases");
+      return;
+    case "study-map":
+      setSection("study");
+      return;
+    default:
+      setFocusMode("all");
+      setSection("training", "recognition");
+  }
+}
+
+function formatSessionClock(totalMs) {
+  const totalSeconds = Math.max(0, Math.ceil(totalMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getQuickSessionActionLabel(actionId) {
+  switch (actionId) {
+    case "review":
+      return "revisao";
+    case "weak-reading":
+      return "leitura dos erros";
+    case "reading":
+      return "leitura curta";
+    case "context":
+      return "contexto";
+    case "phrases":
+      return "frases";
+    case "study-map":
+      return "mapa de estudo";
+    case "adaptive":
+    default:
+      return "treino adaptativo";
+  }
+}
+
+function getWeakEntryIds(entries = getStudyPool()) {
+  return getWeakEntries(entries).map((entry) => entry.id);
+}
+
+function clearQuickSessionRuntime() {
+  if (runtime.quickSessionTimer) {
+    clearInterval(runtime.quickSessionTimer);
+    runtime.quickSessionTimer = 0;
+  }
+}
+
+function getNextTodayAction(plan, currentActionId) {
+  const ordered = [plan?.primary, ...(plan?.steps || [])];
+  const seen = new Set();
+
+  for (const step of ordered) {
+    if (!step || seen.has(step.actionId)) {
+      continue;
+    }
+    seen.add(step.actionId);
+    if (step.actionId !== currentActionId) {
+      return step;
+    }
+  }
+
+  return null;
+}
+
+function renderQuickSession(summary = summarizeProgress(), reviewSnapshot = buildReviewSnapshot()) {
+  const session = state.quickSession;
+  const plan = buildTodayActionPlan(summary, reviewSnapshot);
+  const primary = plan.primary || {
+    title: "Ganhar ritmo com o treino adaptativo",
+    actionId: "adaptive",
+  };
+
+  if (elements.sessionDurationPill) {
+    elements.sessionDurationPill.textContent = session.active
+      ? `rodando ${session.durationMinutes} min`
+      : `${session.durationMinutes} min`;
+  }
+
+  elements.sessionDurationToggle?.querySelectorAll("[data-session-duration]").forEach((button) => {
+    const duration = Number(button.dataset.sessionDuration);
+    button.classList.toggle("is-active", duration === session.durationMinutes);
+    button.disabled = session.active;
+  });
+
+  if (elements.sessionStartCopy) {
+    if (session.active) {
+      elements.sessionStartCopy.textContent =
+        "Sessao ativa. Pode treinar em qualquer aba e o bloco fecha sozinho com resumo no final.";
+    } else if (session.lastSummary) {
+      elements.sessionStartCopy.textContent =
+        "Ultimo bloco fechado. Quando quiser, rode outro sprint curto com um fim bem definido.";
+    } else {
+      elements.sessionStartCopy.textContent =
+        "Escolha um tempo, abra o proximo bloco recomendado e feche com um resumo util no final.";
+    }
+  }
+
+  if (elements.sessionStartTarget) {
+    elements.sessionStartTarget.textContent = session.active
+      ? `Bloco ativo: ${getQuickSessionActionLabel(session.actionId)}`
+      : `Vai abrir: ${primary.title}`;
+  }
+
+  if (elements.sessionStart) {
+    elements.sessionStart.textContent = session.active
+      ? "Sessao em andamento"
+      : `Iniciar sprint de ${session.durationMinutes} min`;
+    elements.sessionStart.disabled = session.active;
+  }
+
+  if (elements.sessionBanner) {
+    elements.sessionBanner.classList.toggle("is-hidden", !session.active);
+  }
+
+  if (session.active) {
+    const totalMs = session.durationMinutes * 60 * 1000;
+    const remainingMs = Math.max(0, session.endsAt - Date.now());
+    const elapsedMs = Math.max(0, Math.min(totalMs, Date.now() - session.startedAt));
+    const progress = totalMs > 0 ? Math.round((elapsedMs / totalMs) * 100) : 0;
+
+    if (elements.sessionBannerKicker) {
+      elements.sessionBannerKicker.textContent = "Sessao curta ativa";
+    }
+    if (elements.sessionBannerTitle) {
+      elements.sessionBannerTitle.textContent =
+        `${getQuickSessionActionLabel(session.actionId)} - ${session.durationMinutes} min`;
+    }
+    if (elements.sessionBannerMeta) {
+      elements.sessionBannerMeta.textContent =
+        `${formatXpDelta(session.xpDelta)} - ${session.correctCount} acertos - ${session.wrongCount} erros`;
+    }
+    if (elements.sessionTimeLeft) {
+      elements.sessionTimeLeft.textContent = formatSessionClock(remainingMs);
+    }
+    if (elements.sessionProgressLabel) {
+      elements.sessionProgressLabel.textContent = `${progress}%`;
+    }
+    if (elements.sessionProgressFill) {
+      elements.sessionProgressFill.style.width = `${progress}%`;
+    }
+  }
+
+  const summaryData = session.lastSummary;
+  if (elements.sessionSummary) {
+    elements.sessionSummary.classList.toggle("is-hidden", !summaryData);
+    elements.sessionSummary.setAttribute("aria-hidden", String(!summaryData));
+  }
+  document.body.classList.toggle("session-summary-open", Boolean(summaryData));
+
+  if (!summaryData) {
+    if (elements.sessionSummaryNext) {
+      elements.sessionSummaryNext.dataset.todayAction = "";
+    }
+    return;
+  }
+
+  if (elements.sessionSummaryKicker) {
+    elements.sessionSummaryKicker.textContent = summaryData.kicker;
+  }
+  if (elements.sessionSummaryTitle) {
+    elements.sessionSummaryTitle.textContent = summaryData.title;
+  }
+  if (elements.sessionSummaryCopy) {
+    elements.sessionSummaryCopy.textContent = summaryData.copy;
+  }
+  if (elements.sessionSummaryTime) {
+    elements.sessionSummaryTime.textContent = summaryData.timeLabel;
+  }
+  if (elements.sessionSummaryXp) {
+    elements.sessionSummaryXp.textContent = summaryData.xpLabel;
+  }
+  if (elements.sessionSummaryImprovedLabel) {
+    elements.sessionSummaryImprovedLabel.textContent = summaryData.improvedLabel;
+  }
+  if (elements.sessionSummaryImproved) {
+    elements.sessionSummaryImproved.textContent = String(summaryData.improvedValue);
+  }
+  if (elements.sessionSummaryWeakLabel) {
+    elements.sessionSummaryWeakLabel.textContent = summaryData.weakLabel;
+  }
+  if (elements.sessionSummaryWeak) {
+    elements.sessionSummaryWeak.textContent = String(summaryData.weakValue);
+  }
+  if (elements.sessionSummaryNext) {
+    elements.sessionSummaryNext.textContent = summaryData.nextButton;
+    elements.sessionSummaryNext.dataset.todayAction = summaryData.nextActionId || "";
+  }
+}
+
+function startQuickSession() {
+  if (state.quickSession.active) {
+    return;
+  }
+
+  const durationMinutes = Number(state.quickSession.durationMinutes || 5);
+  const summary = summarizeProgress();
+  const reviewSnapshot = buildReviewSnapshot();
+  const plan = buildTodayActionPlan(summary, reviewSnapshot);
+  const primary = plan.primary || { actionId: "adaptive" };
+
+  clearQuickSessionRuntime();
+  state.quickSession = {
+    ...createQuickSessionState(),
+    durationMinutes,
+    active: true,
+    startedAt: Date.now(),
+    endsAt: Date.now() + durationMinutes * 60 * 1000,
+    actionId: primary.actionId || "adaptive",
+    startXp: Number(state.progress.xp || 0),
+    startPracticedCount: Number(summary.practicedCount || 0),
+    startWeakIds: getWeakEntryIds(getStudyPool()),
+  };
+
+  runtime.quickSessionTimer = window.setInterval(() => {
+    tickQuickSession();
+  }, 1000);
+
+  runTodayAction(state.quickSession.actionId);
+  renderQuickSession(summary, reviewSnapshot);
+}
+
+function tickQuickSession() {
+  if (!state.quickSession.active) {
+    clearQuickSessionRuntime();
+    return;
+  }
+
+  if (Date.now() >= state.quickSession.endsAt) {
+    finishQuickSession({ completed: true });
+    return;
+  }
+
+  renderQuickSession();
+}
+
+function buildQuickSessionSummary(completed) {
+  const session = state.quickSession;
+  const summary = summarizeProgress();
+  const reviewSnapshot = buildReviewSnapshot();
+  const plan = buildTodayActionPlan(summary, reviewSnapshot);
+  const nextStep = getNextTodayAction(plan, session.actionId);
+  const weakNow = new Set(getWeakEntryIds(getStudyPool()));
+  const startingWeakIds = Array.isArray(session.startWeakIds) ? session.startWeakIds : [];
+  const resolvedWeak = startingWeakIds.filter((id) => !weakNow.has(id)).length;
+  const remainingWeak = startingWeakIds.filter((id) => weakNow.has(id)).length;
+  const practicedDelta = Math.max(
+    0,
+    Number(summary.practicedCount || 0) - Number(session.startPracticedCount || 0)
+  );
+  const elapsedMs = Math.max(
+    0,
+    Math.min(session.durationMinutes * 60 * 1000, Date.now() - Number(session.startedAt || Date.now()))
+  );
+  const xpDelta = Number(state.progress.xp || 0) - Number(session.startXp || 0);
+  const improvedLabel = startingWeakIds.length > 0 ? "Melhoraram" : "Novos vistos";
+  const improvedValue = startingWeakIds.length > 0 ? resolvedWeak : practicedDelta;
+  const weakLabel = startingWeakIds.length > 0 ? "Ainda fracos" : "Em revisao";
+  const weakValue = startingWeakIds.length > 0 ? remainingWeak : weakNow.size;
+
+  let copy = "O bloco terminou e o proximo passo ja ficou separado para voce continuar sem travar.";
+  if (!completed && session.eventCount > 0) {
+    copy = "Voce encerrou antes do fim, mas o resumo preserva o que melhorou e o que ainda merece voltar.";
+  } else if (!completed) {
+    copy = "Sessao encerrada cedo. Quando quiser, rode outro sprint curto para voltar ao ritmo.";
+  } else if (completed && session.eventCount === 0) {
+    copy = "O tempo fechou com pouco movimento. Ainda assim, ficou claro onde retomar sem precisar pensar muito.";
+  }
+
+  return {
+    kicker: completed ? "Sessao concluida" : "Sessao interrompida",
+    title: completed ? "Bloco fechado." : "Sessao encerrada antes do fim.",
+    copy,
+    timeLabel: formatSessionClock(elapsedMs),
+    xpLabel: formatXpDelta(xpDelta),
+    improvedLabel,
+    improvedValue,
+    weakLabel,
+    weakValue,
+    nextActionId: nextStep?.actionId || "",
+    nextButton: nextStep
+      ? `Abrir ${getQuickSessionActionLabel(nextStep.actionId)}`
+      : "Voltar para hoje",
+  };
+}
+
+function finishQuickSession({ completed = true } = {}) {
+  if (!state.quickSession.active) {
+    return;
+  }
+
+  clearQuickSessionRuntime();
+  const summaryData = buildQuickSessionSummary(completed);
+  state.quickSession.active = false;
+  state.quickSession.endsAt = Date.now();
+  state.quickSession.lastSummary = summaryData;
+  setSection("today");
+  renderAll();
+}
+
+function closeQuickSessionSummary() {
+  if (!state.quickSession.lastSummary) {
+    return;
+  }
+
+  state.quickSession.lastSummary = null;
+  renderQuickSession();
 }
 
 function launchTrack(trackId) {
@@ -4263,7 +5332,6 @@ function renderContext() {
 
   elements.contextKindLabel.textContent = labelForTextGroup(state.context.group);
   elements.contextWord.textContent = state.context.text;
-  elements.contextBreakdown.textContent = state.context.breakdown;
   elements.contextMeaning.textContent = state.context.meaning;
 }
 
@@ -4994,30 +6062,44 @@ function saveProgress(options = {}) {
   }
   localStorage.setItem(key, JSON.stringify(state.progress));
 
-  if (!isCloudMode() || !state.currentUser) {
+  const shouldQueueForCloud = Boolean(state.currentUser && isCloudBackedUser(state.currentUser));
+  if (!canUseCloudSync() || !state.currentUser || state.storageMode !== "cloud") {
+    if (shouldQueueForCloud) {
+      queuePendingSync(createSyncSnapshot());
+      refreshSyncState();
+    }
     return Promise.resolve();
   }
 
   const commit = async () => {
-    const snapshot = JSON.parse(JSON.stringify(state.progress));
-    const summary = summarizeProgress(snapshot);
+    const snapshot = createSyncSnapshot();
     setSyncStatus("saving");
 
     try {
+      if (!canUseCloudSync()) {
+        queuePendingSync(snapshot);
+        state.storageMode = "local";
+        refreshSyncState();
+        return;
+      }
       await runtime.bridge.saveProgress({
-        userId: state.currentUserId,
-        userName: state.currentUser,
-        progress: snapshot,
-        summary,
+        userId: snapshot.userId,
+        userName: snapshot.userName,
+        progress: snapshot.progress,
+        summary: snapshot.summary,
       });
+      clearPendingSync(snapshot.userName);
       state.leaderboardLoadedAt = 0;
+      state.storageMode = "cloud";
       setSyncStatus("synced");
       if (state.section === "arcade" && state.arcade.screen === "records") {
         void refreshSharedLeaderboard(true);
       }
     } catch (error) {
       console.error("Falha ao salvar o progresso online.", error);
-      setSyncStatus("error");
+      queuePendingSync(snapshot);
+      state.storageMode = "local";
+      setSyncStatus(navigator.onLine === false ? "local" : "queued");
     }
   };
 
@@ -5042,9 +6124,6 @@ function saveProgress(options = {}) {
 }
 
 async function flushPendingProgressSave() {
-  if (!isCloudMode()) {
-    return;
-  }
   if (runtime.saveTimer) {
     window.clearTimeout(runtime.saveTimer);
     runtime.saveTimer = 0;

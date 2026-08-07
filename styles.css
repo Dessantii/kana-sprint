@@ -100,6 +100,10 @@ body::after {
   display: none;
 }
 
+body.session-summary-open {
+  overflow: hidden;
+}
+
 .auth-card {
   width: min(460px, 100%);
   padding: 1.2rem;
@@ -375,6 +379,12 @@ a:focus-visible {
   border-color: rgba(203, 255, 56, 0.24);
   background: rgba(203, 255, 56, 0.12);
   color: #eaffac;
+}
+
+.sync-badge.is-pending {
+  border-color: rgba(255, 196, 79, 0.28);
+  background: rgba(255, 196, 79, 0.12);
+  color: #ffe7a8;
 }
 
 .sync-badge.is-saving {
@@ -699,6 +709,265 @@ button:disabled {
   border-top: 1px solid var(--line);
 }
 
+.today-focus-card,
+.today-plan-card,
+.today-session-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+    var(--surface-strong);
+}
+
+.today-focus-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(203, 255, 56, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    var(--surface-strong);
+}
+
+.today-session-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(121, 186, 255, 0.06), rgba(255, 255, 255, 0.014)),
+    var(--surface-strong);
+}
+
+.today-focus-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.today-focus-head h3 {
+  margin: 0.18rem 0 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+}
+
+.today-focus-copy {
+  margin: 0.72rem 0 0;
+  max-width: 58ch;
+  color: var(--secondary);
+  line-height: 1.58;
+}
+
+.session-start-target {
+  margin: 0.78rem 0 0;
+  color: var(--surface-contrast);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.session-banner {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(121, 186, 255, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.16), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(255, 255, 255, 0.012)),
+    var(--surface);
+}
+
+.session-banner.is-hidden {
+  display: none;
+}
+
+.session-banner-copy {
+  min-width: 0;
+}
+
+.session-banner-title {
+  margin: 0;
+  color: var(--surface-contrast);
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.session-banner-meta {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.session-banner-side {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.session-banner-time {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.session-banner-time strong {
+  font-size: 1.45rem;
+  line-height: 1;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  color: var(--surface-contrast);
+}
+
+.session-banner-time span {
+  color: var(--secondary);
+  font-weight: 700;
+}
+
+.session-progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.session-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--signal) 0%, #ffad45 100%);
+  box-shadow: 0 8px 18px rgba(255, 107, 44, 0.28);
+}
+
+.session-summary-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(4, 7, 10, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.session-summary-overlay.is-hidden {
+  display: none;
+}
+
+.session-summary-card {
+  width: min(760px, 100%);
+  padding: 1.2rem;
+  border-color: rgba(121, 186, 255, 0.18);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.14), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.016)),
+    var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.session-summary-card h2 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  letter-spacing: -0.035em;
+}
+
+.session-summary-copy {
+  margin: 0.82rem 0 0;
+  max-width: 56ch;
+  color: var(--secondary);
+  line-height: 1.6;
+}
+
+.session-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.session-summary-stat {
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.session-summary-stat span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.session-summary-stat strong {
+  display: block;
+  margin-top: 0.38rem;
+  color: var(--surface-contrast);
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.05;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+}
+
+.session-summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.today-plan-list {
+  display: grid;
+  gap: 0.72rem;
+  margin-top: 0.95rem;
+}
+
+.today-plan-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.today-plan-step {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(203, 255, 56, 0.18);
+  background: rgba(203, 255, 56, 0.08);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.today-plan-body {
+  min-width: 0;
+}
+
+.today-plan-body strong {
+  display: block;
+  color: var(--surface-contrast);
+}
+
+.today-plan-body p {
+  margin: 0.28rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.today-plan-button {
+  min-width: 92px;
+}
+
 .today-deck {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -752,6 +1021,15 @@ button:disabled {
 
 .metric {
   min-width: 0;
+}
+
+.train-nav-shell {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.train-nav-toggle {
+  width: fit-content;
 }
 
 .metric-label {
@@ -2594,10 +2872,42 @@ button:disabled {
   }
 
   .today-side-head,
+  .today-focus-head,
   .detail-topline,
   .quiz-head,
   .script-head {
     align-items: start;
+  }
+
+  .today-plan-item {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .today-plan-step {
+    width: fit-content;
+  }
+
+  .session-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .session-banner-side,
+  .session-summary-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .session-banner-time {
+    align-items: start;
+  }
+
+  .session-summary-actions {
+    display: grid;
+  }
+
+  .today-plan-button,
+  .train-nav-toggle {
+    width: 100%;
   }
 
   .footer {
@@ -2627,6 +2937,12 @@ button:disabled {
   .primary-button,
   .route-pill,
   .reading-form input {
+    width: 100%;
+  }
+
+  .session-banner-side .ghost-button,
+  .session-summary-actions .ghost-button,
+  .session-summary-actions .primary-button {
     width: 100%;
   }
 

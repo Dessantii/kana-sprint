@@ -188,6 +188,24 @@
         </div>
       </nav>
 
+      <section id="session-banner" class="session-banner is-hidden" aria-live="polite">
+        <div class="session-banner-copy">
+          <p class="route-label" id="session-banner-kicker">Sessao curta</p>
+          <p class="session-banner-title" id="session-banner-title">Sprint de 5 min pronto para comecar</p>
+          <p class="session-banner-meta" id="session-banner-meta">0 XP - 0 acertos - 0 erros</p>
+        </div>
+        <div class="session-banner-side">
+          <div class="session-banner-time">
+            <strong id="session-time-left">05:00</strong>
+            <span id="session-progress-label">0%</span>
+          </div>
+          <div class="session-progress">
+            <span id="session-progress-fill"></span>
+          </div>
+          <button type="button" id="session-stop" class="ghost-button">Encerrar sessao</button>
+        </div>
+      </section>
+
       <main class="page">
         <section class="workspace-section is-active" data-section-panel="today">
           <article class="today-panel panel">
@@ -199,19 +217,62 @@
                 volta com mais frequencia o que ainda trava.
               </p>
 
-              <div class="today-actions">
-                <button
-                  type="button"
-                  class="primary-button"
-                  data-section-target="training"
-                  data-train-target="recognition"
-                >
-                  Comecar treino adaptativo
-                </button>
-                <button type="button" id="activate-weak-focus" class="ghost-button">
-                  Treinar meus erros
-                </button>
+              <div class="today-focus-card">
+                <div class="today-focus-head">
+                  <div>
+                    <p class="route-label" id="today-primary-kicker">Agora</p>
+                    <h3 id="today-primary-title">Comece pelo bloco que mais precisa voltar</h3>
+                  </div>
+                  <span class="pill muted" id="today-plan-pill">3 passos</span>
+                </div>
+                <p class="today-focus-copy" id="today-primary-copy">
+                  Entre pelo proximo passo pronto em vez de escolher entre varios blocos.
+                </p>
+                <div class="today-actions">
+                  <button type="button" id="today-primary-action" class="primary-button">
+                    Continuar de onde parei
+                  </button>
+                  <button type="button" id="activate-weak-focus" class="ghost-button">
+                    Treinar meus erros
+                  </button>
+                </div>
               </div>
+
+              <article class="today-session-card">
+                <div class="panel-subhead">
+                  <div>
+                    <p class="route-label">Sessao curta</p>
+                    <h3>Treino com inicio e fim claro</h3>
+                  </div>
+                  <span class="pill muted" id="session-duration-pill">5 min</span>
+                </div>
+                <p class="today-summary" id="session-start-copy">
+                  Escolha um tempo, abra o proximo bloco recomendado e feche com um resumo util no final.
+                </p>
+                <p class="session-start-target" id="session-start-target">
+                  Vai abrir: ganhar ritmo com o treino adaptativo.
+                </p>
+                <div id="session-duration-toggle" class="segmented compact-segmented">
+                  <button type="button" data-session-duration="2">2 min</button>
+                  <button type="button" data-session-duration="5" class="is-active">5 min</button>
+                  <button type="button" data-session-duration="10">10 min</button>
+                </div>
+                <div class="today-actions">
+                  <button type="button" id="session-start" class="secondary-button">
+                    Iniciar sprint de 5 min
+                  </button>
+                </div>
+              </article>
+
+              <article class="today-plan-card">
+                <div class="panel-subhead">
+                  <div>
+                    <p class="route-label">Plano do dia</p>
+                    <h3>So os proximos 3 passos</h3>
+                  </div>
+                </div>
+                <div id="today-plan-list" class="today-plan-list"></div>
+              </article>
 
               <div class="today-deck">
                 <article class="today-callout">
@@ -235,42 +296,6 @@
                   </div>
                   <div id="today-review-buckets" class="review-bucket-grid"></div>
                 </article>
-              </div>
-
-              <div class="today-route">
-                <p class="route-label">Sequencia sugerida</p>
-                <div class="route-track">
-                  <button type="button" class="route-pill" data-section-target="study">
-                    Mapa rapido
-                  </button>
-                  <button
-                    type="button"
-                    class="route-pill"
-                    data-section-target="training"
-                    data-train-target="reading"
-                  >
-                    Leitura curta
-                  </button>
-                  <button
-                    type="button"
-                    class="route-pill"
-                    data-section-target="training"
-                    data-train-target="phrases"
-                  >
-                    Frases por tema
-                  </button>
-                  <button
-                    type="button"
-                    class="route-pill"
-                    data-section-target="arcade"
-                    data-arcade-screen="games"
-                  >
-                    Jogos
-                  </button>
-                  <button type="button" class="route-pill" data-section-target="review">
-                    Revisar confusos
-                  </button>
-                </div>
               </div>
 
               <div class="today-metrics">
@@ -375,19 +400,24 @@
               </p>
             </div>
 
-            <div id="train-nav" class="train-nav">
-              <button type="button" data-train-target="recognition" class="is-active">
-                Reflexo
+            <div class="train-nav-shell">
+              <div id="train-nav" class="train-nav">
+                <button type="button" data-train-target="recognition" data-train-priority="core" class="is-active">
+                  Reflexo
+                </button>
+                <button type="button" data-train-target="reading" data-train-priority="core">Curtas</button>
+                <button type="button" data-train-target="context" data-train-priority="core">Contexto</button>
+                <button type="button" data-train-target="phrases" data-train-priority="core">Frases</button>
+                <button type="button" data-train-target="confusion" data-train-priority="extra">
+                  Confusos
+                </button>
+                <button type="button" data-train-target="cloze" data-train-priority="extra">Lacunas</button>
+                <button type="button" data-train-target="dictation" data-train-priority="extra">Audio</button>
+                <button type="button" data-train-target="builder" data-train-priority="extra">Montagem</button>
+              </div>
+              <button type="button" id="toggle-train-nav" class="ghost-button train-nav-toggle">
+                Ver outros treinos
               </button>
-              <button type="button" data-train-target="confusion">
-                Confusos
-              </button>
-              <button type="button" data-train-target="reading">Curtas</button>
-              <button type="button" data-train-target="context">Contexto</button>
-              <button type="button" data-train-target="phrases">Frases</button>
-              <button type="button" data-train-target="cloze">Lacunas</button>
-              <button type="button" data-train-target="dictation">Audio</button>
-              <button type="button" data-train-target="builder">Montagem</button>
             </div>
 
             <div class="train-stage">
@@ -477,7 +507,6 @@
 
                   <div class="context-card">
                     <div class="context-word" id="context-word">&#12371;&#12435;&#12395;&#12385;&#12399;</div>
-                    <p class="context-breakdown" id="context-breakdown">ko / n / ni / chi / ha</p>
                     <p class="context-meaning" id="context-meaning">ola</p>
                   </div>
 
@@ -1130,6 +1159,49 @@
           </button>
         </div>
       </footer>
+    </div>
+
+    <div id="session-summary" class="session-summary-overlay is-hidden" aria-hidden="true">
+      <section
+        class="session-summary-card panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="session-summary-title"
+      >
+        <p class="eyebrow" id="session-summary-kicker">Sessao concluida</p>
+        <h2 id="session-summary-title">Bloco fechado.</h2>
+        <p class="session-summary-copy" id="session-summary-copy">
+          O treino terminou com um resumo rapido para voce decidir o proximo passo sem pensar demais.
+        </p>
+
+        <div class="session-summary-stats">
+          <article class="session-summary-stat">
+            <span>Tempo</span>
+            <strong id="session-summary-time">5:00</strong>
+          </article>
+          <article class="session-summary-stat">
+            <span>XP</span>
+            <strong id="session-summary-xp">0</strong>
+          </article>
+          <article class="session-summary-stat">
+            <span id="session-summary-improved-label">Melhoraram</span>
+            <strong id="session-summary-improved">0</strong>
+          </article>
+          <article class="session-summary-stat">
+            <span id="session-summary-weak-label">Ainda fracos</span>
+            <strong id="session-summary-weak">0</strong>
+          </article>
+        </div>
+
+        <div class="session-summary-actions">
+          <button type="button" id="session-summary-next" class="primary-button">
+            Proximo passo
+          </button>
+          <button type="button" id="session-summary-close" class="ghost-button">
+            Fechar resumo
+          </button>
+        </div>
+      </section>
     </div>
 
     <script src="supabase-config.js"></script>
