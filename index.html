@@ -420,74 +420,75 @@
               </button>
             </div>
 
-            <div class="train-rail">
-              <div class="train-rail-head">
-                <div>
-                  <p class="route-label" id="train-rail-kicker">Bloco atual</p>
-                  <h3 id="train-rail-title">Reflexo</h3>
-                  <p class="train-rail-copy" id="train-rail-copy">
-                    Reconheca o caractere ou o som correto com rapidez e clareza.
-                  </p>
-                </div>
-                <div class="train-rail-pills">
-                  <span class="pill muted" id="train-rail-focus">Foco: tudo</span>
-                  <span class="pill muted" id="train-rail-session">Sessao livre</span>
-                  <span class="pill" id="train-rail-status">0/8</span>
-                </div>
-              </div>
-
-              <div class="train-rail-metrics">
-                <article class="train-rail-metric">
-                  <span>Feitas</span>
-                  <strong id="train-rail-answered">0/8</strong>
-                </article>
-                <article class="train-rail-metric">
-                  <span>Acertos</span>
-                  <strong id="train-rail-correct">0</strong>
-                </article>
-                <article class="train-rail-metric">
-                  <span>Erros</span>
-                  <strong id="train-rail-wrong">0</strong>
-                </article>
-                <article class="train-rail-metric">
-                  <span>Taxa</span>
-                  <strong id="train-rail-accuracy">0%</strong>
-                </article>
-              </div>
-
-              <div class="train-rail-progress">
-                <span id="train-rail-progress-fill"></span>
-              </div>
-
-              <div class="train-rail-actions">
-                <button type="button" id="train-block-reset" class="ghost-button">
-                  Reiniciar bloco
-                </button>
-                <button type="button" id="train-block-next" class="secondary-button">
-                  Trocar de bloco
-                </button>
-              </div>
-            </div>
-
-            <div class="train-stage">
-              <section class="train-panel is-active" data-train-panel="recognition">
-                <div class="exercise">
-                  <div class="quiz-head">
-                    <span class="pill muted" id="quiz-mode-label">Kana para som</span>
-                    <span class="pill" id="quiz-streak-label">Sequencia: 0</span>
+            <div class="train-layout">
+              <aside class="train-rail">
+                <div class="train-rail-head">
+                  <div>
+                    <p class="route-label" id="train-rail-kicker">Bloco atual</p>
+                    <h3 id="train-rail-title">Reflexo</h3>
+                    <p class="train-rail-copy" id="train-rail-copy">
+                      Reconheca o caractere ou o som correto com rapidez e clareza.
+                    </p>
                   </div>
+                  <div class="train-rail-pills">
+                    <span class="pill muted" id="train-rail-focus">Foco: tudo</span>
+                    <span class="pill muted" id="train-rail-session">Sessao livre</span>
+                    <span class="pill" id="train-rail-status">0/8</span>
+                  </div>
+                </div>
 
-                  <p class="quiz-instruction" id="quiz-instruction">
-                    Qual e o som deste caractere?
-                  </p>
-                  <div class="quiz-prompt" id="quiz-prompt">&#12373;</div>
-                  <div class="quiz-options" id="quiz-options"></div>
-                  <p class="feedback" id="quiz-feedback" aria-live="polite"></p>
-                  <button type="button" id="next-quiz" class="primary-button">
-                    Nova rodada
+                <div class="train-rail-progress">
+                  <span id="train-rail-progress-fill"></span>
+                </div>
+
+                <div class="train-rail-metrics">
+                  <article class="train-rail-metric">
+                    <span>Feitas</span>
+                    <strong id="train-rail-answered">0/8</strong>
+                  </article>
+                  <article class="train-rail-metric">
+                    <span>Acertos</span>
+                    <strong id="train-rail-correct">0</strong>
+                  </article>
+                  <article class="train-rail-metric">
+                    <span>Erros</span>
+                    <strong id="train-rail-wrong">0</strong>
+                  </article>
+                  <article class="train-rail-metric">
+                    <span>Taxa</span>
+                    <strong id="train-rail-accuracy">0%</strong>
+                  </article>
+                </div>
+
+                <div class="train-rail-actions">
+                  <button type="button" id="train-block-reset" class="ghost-button">
+                    Reiniciar bloco
+                  </button>
+                  <button type="button" id="train-block-next" class="secondary-button">
+                    Trocar de bloco
                   </button>
                 </div>
-              </section>
+              </aside>
+
+              <div class="train-stage">
+                <section class="train-panel is-active" data-train-panel="recognition">
+                  <div class="exercise">
+                    <div class="quiz-head">
+                      <span class="pill muted" id="quiz-mode-label">Kana para som</span>
+                      <span class="pill" id="quiz-streak-label">Sequencia: 0</span>
+                    </div>
+
+                    <p class="quiz-instruction" id="quiz-instruction">
+                      Qual e o som deste caractere?
+                    </p>
+                    <div class="quiz-prompt" id="quiz-prompt">&#12373;</div>
+                    <div class="quiz-options" id="quiz-options"></div>
+                    <p class="feedback" id="quiz-feedback" aria-live="polite"></p>
+                    <button type="button" id="next-quiz" class="primary-button">
+                      Nova rodada
+                    </button>
+                  </div>
+                </section>
 
               <section class="train-panel" data-train-panel="confusion">
                 <div class="exercise">
@@ -746,6 +747,7 @@
                   </div>
                 </div>
               </section>
+              </div>
             </div>
           </article>
         </section>

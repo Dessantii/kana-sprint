@@ -5119,6 +5119,7 @@ function renderQuickSession(summary = summarizeProgress(), reviewSnapshot = buil
   if (elements.sessionBanner) {
     elements.sessionBanner.classList.toggle("is-hidden", !session.active);
   }
+  document.body.classList.toggle("session-live", session.active);
 
   if (session.active) {
     const totalMs = session.durationMinutes * 60 * 1000;
