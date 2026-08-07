@@ -3361,8 +3361,8 @@ function renderTrainNav() {
   if (elements.toggleTrainNav) {
     const hiddenCount = extraTrainModes.length;
     elements.toggleTrainNav.textContent = expanded
-      ? "Mostrar menos modos"
-      : `Ver outros treinos (${hiddenCount})`;
+      ? "Menos modos"
+      : `Mais modos (${hiddenCount})`;
   }
 
   document.querySelectorAll("[data-train-panel]").forEach((panel) => {
@@ -3465,7 +3465,6 @@ function renderTrainRail() {
   const meta = trainModeMeta[state.trainMode] || trainModeMeta.recognition;
   const block = getTrainBlock(state.trainMode);
   const progressCount = Math.min(block.answered, trainBlockTarget);
-  const remaining = Math.max(0, trainBlockTarget - progressCount);
   const accuracy = block.answered ? Math.round((block.correct / block.answered) * 100) : 0;
   const nextMode = getNextTrainMode(state.trainMode);
   const nextMeta = trainModeMeta[nextMode] || trainModeMeta.recognition;
@@ -3476,7 +3475,7 @@ function renderTrainRail() {
     : "Sessao livre";
 
   if (elements.trainRailKicker) {
-    elements.trainRailKicker.textContent = "Bloco atual";
+    elements.trainRailKicker.textContent = state.quickSession.active ? "Agora" : "Bloco atual";
   }
   elements.trainRailTitle.textContent = meta.label;
   elements.trainRailCopy.textContent = meta.copy;
@@ -3488,8 +3487,8 @@ function renderTrainRail() {
   }
   if (elements.trainRailStatus) {
     elements.trainRailStatus.textContent = completed
-      ? `Bloco fechado ${progressCount}/${trainBlockTarget}`
-      : `Faltam ${remaining} respostas`;
+      ? "Concluido"
+      : `${progressCount}/${trainBlockTarget}`;
   }
   if (elements.trainRailAnswered) {
     elements.trainRailAnswered.textContent = `${progressCount}/${trainBlockTarget}`;
@@ -5128,15 +5127,14 @@ function renderQuickSession(summary = summarizeProgress(), reviewSnapshot = buil
     const progress = totalMs > 0 ? Math.round((elapsedMs / totalMs) * 100) : 0;
 
     if (elements.sessionBannerKicker) {
-      elements.sessionBannerKicker.textContent = "Sessao curta ativa";
+      elements.sessionBannerKicker.textContent = "Sprint ativo";
     }
     if (elements.sessionBannerTitle) {
-      elements.sessionBannerTitle.textContent =
-        `${getQuickSessionActionLabel(session.actionId)} - ${session.durationMinutes} min`;
+      elements.sessionBannerTitle.textContent = getQuickSessionActionLabel(session.actionId);
     }
     if (elements.sessionBannerMeta) {
       elements.sessionBannerMeta.textContent =
-        `${formatXpDelta(session.xpDelta)} - ${session.correctCount} acertos - ${session.wrongCount} erros`;
+        `${session.durationMinutes} min - ${formatXpDelta(session.xpDelta)} - ${session.correctCount} acertos - ${session.wrongCount} erros`;
     }
     if (elements.sessionTimeLeft) {
       elements.sessionTimeLeft.textContent = formatSessionClock(remainingMs);

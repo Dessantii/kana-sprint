@@ -764,18 +764,20 @@ button:disabled {
 }
 
 .session-banner {
-  margin-top: 1rem;
+  width: min(1040px, 100%);
+  margin: 1rem auto 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.9rem 1rem;
   align-items: center;
-  padding: 1rem 1.15rem;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(121, 186, 255, 0.16);
+  padding: 0.88rem 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(121, 186, 255, 0.22);
   background:
-    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.16), transparent 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(255, 255, 255, 0.012)),
-    var(--surface);
+    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.2), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.018)),
+    rgba(10, 15, 21, 0.94);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
 }
 
 .session-banner.is-hidden {
@@ -784,35 +786,44 @@ button:disabled {
 
 .session-banner-copy {
   min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.session-banner-copy .route-label {
+  margin-bottom: 0.18rem;
 }
 
 .session-banner-title {
   margin: 0;
   color: var(--surface-contrast);
-  font-size: 1.06rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
 }
 
 .session-banner-meta {
-  margin: 0.35rem 0 0;
+  margin: 0;
   color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .session-banner-side {
   display: grid;
-  gap: 0.62rem;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 0.8rem;
+  align-items: center;
 }
 
 .session-banner-time {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  align-items: baseline;
+  display: grid;
+  gap: 0.08rem;
+  justify-items: end;
 }
 
 .session-banner-time strong {
-  font-size: 1.45rem;
+  font-size: 1.15rem;
   line-height: 1;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   color: var(--surface-contrast);
@@ -821,9 +832,11 @@ button:disabled {
 .session-banner-time span {
   color: var(--secondary);
   font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .session-progress {
+  width: 190px;
   height: 10px;
   overflow: hidden;
   border-radius: 999px;
@@ -1024,12 +1037,18 @@ button:disabled {
 }
 
 .train-nav-shell {
-  display: grid;
-  gap: 0.72rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .train-nav-toggle {
   width: fit-content;
+  min-height: 48px;
+  padding-inline: 1rem;
+  white-space: nowrap;
 }
 
 .metric-label {
@@ -1326,6 +1345,26 @@ button:disabled {
   margin-top: 0.72rem;
 }
 
+.workspace-section[data-section-panel="training"] .surface {
+  padding-top: 1.15rem;
+}
+
+.workspace-section[data-section-panel="training"] .surface-head {
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
+  margin-bottom: 0.9rem;
+}
+
+.workspace-section[data-section-panel="training"] .surface-head h2 {
+  font-size: clamp(1.95rem, 3vw, 2.55rem);
+}
+
+.workspace-section[data-section-panel="training"] .surface-note {
+  max-width: 60ch;
+  margin: 0;
+  text-align: left;
+}
+
 .surface-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.58fr);
@@ -1511,43 +1550,48 @@ button:disabled {
 }
 
 .train-nav {
-  margin-bottom: 1rem;
+  flex: 1 1 720px;
+  min-width: 0;
+  margin-bottom: 0;
   padding: 0.38rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid rgba(218, 229, 240, 0.14);
 }
 
 .train-rail {
   margin-bottom: 1rem;
-  padding: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.88fr);
+  gap: 1rem 1.1rem;
+  align-items: start;
+  padding: 1.05rem 1.1rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background:
-    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.12), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.014)),
-    var(--surface-strong);
+    radial-gradient(circle at 100% 0%, rgba(121, 186, 255, 0.14), transparent 26%),
+    radial-gradient(circle at 0% 100%, rgba(203, 255, 56, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    #101822;
 }
 
 .train-rail-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: start;
+  display: block;
 }
 
 .train-rail-head h3 {
   margin: 0.18rem 0 0;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  font-size: 1.55rem;
+  font-size: 1.4rem;
   letter-spacing: -0.03em;
 }
 
 .train-rail-copy {
-  margin: 0.66rem 0 0;
-  max-width: 58ch;
+  margin: 0.62rem 0 0;
+  max-width: 54ch;
   color: var(--secondary);
-  line-height: 1.58;
+  line-height: 1.55;
+  font-size: 0.96rem;
 }
 
 .train-rail-pills,
@@ -1558,27 +1602,33 @@ button:disabled {
 }
 
 .train-rail-pills {
-  justify-content: end;
+  justify-content: flex-start;
+  margin-top: 0.88rem;
 }
 
 .train-rail-metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.8rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.58rem;
+  margin-top: 0;
 }
 
 .train-rail-metric {
-  padding: 0.9rem 0.95rem;
+  min-height: 84px;
+  padding: 0.8rem 0.84rem;
+  display: grid;
+  align-content: space-between;
   border-radius: 18px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.03);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.042), rgba(255, 255, 255, 0.014)),
+    rgba(5, 8, 12, 0.18);
 }
 
 .train-rail-metric span {
   display: block;
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1586,20 +1636,21 @@ button:disabled {
 
 .train-rail-metric strong {
   display: block;
-  margin-top: 0.35rem;
+  margin-top: 0.24rem;
   color: var(--surface-contrast);
-  font-size: 1.65rem;
+  font-size: 1.42rem;
   line-height: 1.04;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 }
 
 .train-rail-progress {
-  margin-top: 0.95rem;
-  height: 10px;
+  grid-column: 1 / -1;
+  margin-top: 0.2rem;
+  height: 8px;
   overflow: hidden;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .train-rail-progress span {
@@ -1612,17 +1663,21 @@ button:disabled {
 }
 
 .train-rail-actions {
-  margin-top: 0.95rem;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  margin-top: 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(218, 229, 240, 0.09);
 }
 
 .train-stage {
   min-height: 520px;
-  padding: 1.15rem;
+  padding: 1rem 1.05rem 1.15rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
   background:
-    radial-gradient(circle at 50% 0%, rgba(203, 255, 56, 0.08), transparent 18%),
-    linear-gradient(180deg, #0c131a 0%, #101821 100%);
+    radial-gradient(circle at 50% 0%, rgba(203, 255, 56, 0.07), transparent 16%),
+    linear-gradient(180deg, #0b1117 0%, #0f1720 100%);
 }
 
 .train-panel {
@@ -2775,6 +2830,18 @@ button:disabled {
     text-align: left;
   }
 
+  .train-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .train-rail-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .train-rail-actions {
+    justify-content: flex-start;
+  }
+
   .detail-card {
     position: static;
   }
@@ -3024,7 +3091,9 @@ button:disabled {
   }
 
   .session-banner {
+    width: 100%;
     grid-template-columns: 1fr;
+    padding: 0.9rem;
   }
 
   .session-banner-side,
@@ -3032,12 +3101,33 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .session-banner-side {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+  }
+
   .session-banner-time {
+    justify-items: start;
     align-items: start;
+  }
+
+  .session-progress {
+    width: 100%;
   }
 
   .session-summary-actions {
     display: grid;
+  }
+
+  .train-nav-shell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .train-nav {
+    flex: none;
+    width: 100%;
+    margin-top: 0;
   }
 
   .train-rail-metrics {
