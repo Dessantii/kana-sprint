@@ -1041,7 +1041,9 @@ const elements = {
   sessionBanner: document.getElementById("session-banner"),
   sessionBannerKicker: document.getElementById("session-banner-kicker"),
   sessionBannerTitle: document.getElementById("session-banner-title"),
-  sessionBannerMeta: document.getElementById("session-banner-meta"),
+  sessionBannerXp: document.getElementById("session-banner-xp"),
+  sessionBannerCorrect: document.getElementById("session-banner-correct"),
+  sessionBannerWrong: document.getElementById("session-banner-wrong"),
   sessionTimeLeft: document.getElementById("session-time-left"),
   sessionProgressLabel: document.getElementById("session-progress-label"),
   sessionProgressFill: document.getElementById("session-progress-fill"),
@@ -5119,7 +5121,6 @@ function renderQuickSession(summary = summarizeProgress(), reviewSnapshot = buil
   if (elements.sessionBanner) {
     elements.sessionBanner.classList.toggle("is-hidden", !session.active);
   }
-  document.body.classList.toggle("session-live", session.active);
 
   if (session.active) {
     const totalMs = session.durationMinutes * 60 * 1000;
@@ -5133,9 +5134,14 @@ function renderQuickSession(summary = summarizeProgress(), reviewSnapshot = buil
     if (elements.sessionBannerTitle) {
       elements.sessionBannerTitle.textContent = getQuickSessionActionLabel(session.actionId);
     }
-    if (elements.sessionBannerMeta) {
-      elements.sessionBannerMeta.textContent =
-        `${session.durationMinutes} min - ${formatXpDelta(session.xpDelta)} - ${session.correctCount} acertos - ${session.wrongCount} erros`;
+    if (elements.sessionBannerXp) {
+      elements.sessionBannerXp.textContent = formatXpDelta(session.xpDelta);
+    }
+    if (elements.sessionBannerCorrect) {
+      elements.sessionBannerCorrect.textContent = String(session.correctCount);
+    }
+    if (elements.sessionBannerWrong) {
+      elements.sessionBannerWrong.textContent = String(session.wrongCount);
     }
     if (elements.sessionTimeLeft) {
       elements.sessionTimeLeft.textContent = formatSessionClock(remainingMs);

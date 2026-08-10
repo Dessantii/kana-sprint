@@ -189,20 +189,37 @@
       </nav>
 
       <section id="session-banner" class="session-banner is-hidden" aria-live="polite">
-        <div class="session-banner-copy">
-          <p class="route-label" id="session-banner-kicker">Sessao curta</p>
-          <p class="session-banner-title" id="session-banner-title">Sprint de 5 min pronto para comecar</p>
-          <p class="session-banner-meta" id="session-banner-meta">0 XP - 0 acertos - 0 erros</p>
+        <div class="session-banner-main">
+          <div class="session-banner-copy">
+            <p class="route-label" id="session-banner-kicker">Sessao curta</p>
+            <p class="session-banner-title" id="session-banner-title">Sprint de 5 min pronto para comecar</p>
+          </div>
+
+          <div class="session-banner-stats">
+            <article class="session-banner-stat">
+              <span>Saldo</span>
+              <strong id="session-banner-xp">0 XP</strong>
+            </article>
+            <article class="session-banner-stat">
+              <span>Acertos</span>
+              <strong id="session-banner-correct">0</strong>
+            </article>
+            <article class="session-banner-stat">
+              <span>Erros</span>
+              <strong id="session-banner-wrong">0</strong>
+            </article>
+          </div>
         </div>
+
         <div class="session-banner-side">
           <div class="session-banner-time">
             <strong id="session-time-left">05:00</strong>
             <span id="session-progress-label">0%</span>
           </div>
-          <div class="session-progress">
-            <span id="session-progress-fill"></span>
-          </div>
           <button type="button" id="session-stop" class="ghost-button">Encerrar sessao</button>
+        </div>
+        <div class="session-progress">
+          <span id="session-progress-fill"></span>
         </div>
       </section>
 
