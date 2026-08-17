@@ -64,6 +64,39 @@ const dailyMissionCatalog = [
     target: 1,
   },
 ];
+const distractionGatePresets = [
+  {
+    id: "warmup",
+    label: "Curto",
+    title: "Destravar rapido",
+    description: "12 acertos, 2 revisoes vencendo e 1 bloco de contexto ou frase.",
+    targets: { answers: 12, review: 2, phrases: 1 },
+  },
+  {
+    id: "missions",
+    label: "Licoes do dia",
+    title: "Fechar as licoes do dia",
+    description: "Complete as 4 missoes diarias antes de se liberar.",
+    missionsComplete: true,
+  },
+  {
+    id: "deep",
+    label: "Pesado",
+    title: "Bloco forte antes das redes",
+    description: "25 acertos, 4 revisoes vencendo e 2 blocos de contexto ou frase.",
+    targets: { answers: 25, review: 4, phrases: 2 },
+  },
+];
+const distractionRewards = {
+  youtube: {
+    label: "YouTube",
+    url: "https://www.youtube.com/",
+  },
+  instagram: {
+    label: "Instagram",
+    url: "https://www.instagram.com/",
+  },
+};
 const trackCatalog = [
   {
     id: "foundations",
@@ -1038,6 +1071,15 @@ const elements = {
   todayPrimaryAction: document.getElementById("today-primary-action"),
   todayPlanPill: document.getElementById("today-plan-pill"),
   todayPlanList: document.getElementById("today-plan-list"),
+  gateStatusPill: document.getElementById("gate-status-pill"),
+  gateCopy: document.getElementById("gate-copy"),
+  gatePresets: document.getElementById("gate-presets"),
+  gateProgressCopy: document.getElementById("gate-progress-copy"),
+  gateProgressFill: document.getElementById("gate-progress-fill"),
+  gateToggle: document.getElementById("gate-toggle"),
+  gateOpenYoutube: document.getElementById("gate-open-youtube"),
+  gateOpenInstagram: document.getElementById("gate-open-instagram"),
+  gateNote: document.getElementById("gate-note"),
   sessionBanner: document.getElementById("session-banner"),
   sessionBannerKicker: document.getElementById("session-banner-kicker"),
   sessionBannerTitle: document.getElementById("session-banner-title"),
@@ -1768,6 +1810,7 @@ function normalizeLoadedProgress(progress) {
     itemReview: progress?.itemReview || {},
     daily: progress?.daily || createDailyProgressState(),
     activityLog: Array.isArray(progress?.activityLog) ? progress.activityLog : [],
+    distractionGate: progress?.distractionGate || createDistractionGateState(),
   };
   normalized.xp = Number.isFinite(Number(normalized.xp))
     ? Math.max(0, Number(normalized.xp))
@@ -1782,6 +1825,7 @@ function normalizeLoadedProgress(progress) {
   normalized.activityLog = normalizeActivityLog(normalized.activityLog);
   normalized.charReview = normalizeReviewMap(normalized.charReview);
   normalized.itemReview = normalizeReviewMap(normalized.itemReview);
+  normalized.distractionGate = normalizeDistractionGateState(normalized.distractionGate);
   return normalized;
 }
 
@@ -1845,6 +1889,23 @@ function normalizeDailyProgress(daily) {
   };
 }
 
+function createDistractionGateState() {
+  return {
+    enabled: false,
+    presetId: "missions",
+  };
+}
+
+function normalizeDistractionGateState(gate) {
+  const presetExists = distractionGatePresets.some((preset) => preset.id === gate?.presetId);
+  return {
+    ...createDistractionGateState(),
+    ...(gate || {}),
+    enabled: Boolean(gate?.enabled),
+    presetId: presetExists ? gate.presetId : "missions",
+  };
+}
+
 function normalizeActivityLog(log) {
   return [...new Map(
     (Array.isArray(log) ? log : [])
@@ -1890,6 +1951,75 @@ function getMissionValue(daily, missionId) {
 
 function areDailyMissionsComplete(daily = state.progress.daily) {
   return dailyMissionCatalog.every((mission) => getMissionValue(daily, mission.id) >= mission.target);
+}
+
+function getDistractionGatePreset(presetId) {
+  return distractionGatePresets.find((preset) => preset.id === presetId) || distractionGatePresets[1];
+}
+
+function getDistractionGateStatus(progress = state.progress) {
+  const gate = normalizeDistractionGateState(progress?.distractionGate);
+  const daily = normalizeDailyProgress(progress?.daily);
+  const preset = getDistractionGatePreset(gate.presetId);
+
+  if (preset.missionsComplete) {
+    const completedCount = dailyMissionCatalog.filter((mission) =>
+      getMissionValue(daily, mission.id) >= mission.target
+    ).length;
+    const totalCount = dailyMissionCatalog.length;
+    const unlocked = gate.enabled && completedCount >= totalCount;
+    return {
+      gate,
+      preset,
+      unlocked,
+      progressPercent: Math.round((completedCount / totalCount) * 100),
+      progressLabel: `${completedCount}/${totalCount} missoes fechadas`,
+      remainingCopy: unlocked
+        ? "Meta do dia concluida. Seus atalhos foram liberados."
+        : completedCount === 0
+          ? "Nenhuma das missoes do dia foi fechada ainda."
+          : `Faltam ${totalCount - completedCount} missoes para destravar.`,
+    };
+  }
+
+  const checks = [
+    {
+      label: "acertos",
+      current: getMissionValue(daily, "answers"),
+      target: preset.targets.answers,
+    },
+    {
+      label: "revisoes",
+      current: getMissionValue(daily, "review"),
+      target: preset.targets.review,
+    },
+    {
+      label: "blocos de contexto",
+      current: getMissionValue(daily, "phrases"),
+      target: preset.targets.phrases,
+    },
+  ];
+  const progressPercent = Math.round(
+    checks.reduce((total, check) => total + Math.min(1, check.current / check.target), 0) /
+      checks.length * 100
+  );
+  const unlocked = gate.enabled && checks.every((check) => check.current >= check.target);
+  const remaining = checks
+    .filter((check) => check.current < check.target)
+    .map((check) => `${check.target - check.current} ${check.label}`);
+
+  return {
+    gate,
+    preset,
+    unlocked,
+    progressPercent,
+    progressLabel: checks
+      .map((check) => `${Math.min(check.current, check.target)}/${check.target} ${check.label}`)
+      .join(" • "),
+    remainingCopy: unlocked
+      ? "Meta batida. Seus atalhos foram liberados."
+      : `Falta ${remaining.join(", ")}.`,
+  };
 }
 
 function getDisplayDailyStreak(progress = state.progress) {
@@ -2462,6 +2592,34 @@ function hashPassword(value) {
   return `h${(hash >>> 0).toString(16).padStart(8, "0")}`;
 }
 
+function setDistractionGatePreset(presetId) {
+  state.progress.distractionGate = normalizeDistractionGateState({
+    ...state.progress.distractionGate,
+    presetId,
+  });
+  renderDistractionGate();
+  saveProgress();
+}
+
+function toggleDistractionGate() {
+  const current = normalizeDistractionGateState(state.progress.distractionGate);
+  state.progress.distractionGate = {
+    ...current,
+    enabled: !current.enabled,
+  };
+  renderDistractionGate();
+  saveProgress();
+}
+
+function openDistractionReward(rewardId) {
+  const reward = distractionRewards[rewardId];
+  const status = getDistractionGateStatus();
+  if (!reward || !status.gate.enabled || !status.unlocked) {
+    return;
+  }
+  window.open(reward.url, "_blank", "noopener");
+}
+
 function bindControls() {
   if (elements.authToggle) {
     elements.authToggle.addEventListener("click", (event) => {
@@ -2584,6 +2742,26 @@ function bindControls() {
     setSection("review");
   });
   elements.clearFocus.addEventListener("click", () => setFocusMode("all"));
+
+  elements.gatePresets?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-gate-preset]");
+    if (!button) {
+      return;
+    }
+    setDistractionGatePreset(button.dataset.gatePreset);
+  });
+
+  elements.gateToggle?.addEventListener("click", () => {
+    toggleDistractionGate();
+  });
+
+  elements.gateOpenYoutube?.addEventListener("click", () => {
+    openDistractionReward("youtube");
+  });
+
+  elements.gateOpenInstagram?.addEventListener("click", () => {
+    openDistractionReward("instagram");
+  });
 
   elements.toggleTrainNav?.addEventListener("click", () => {
     state.trainNavExpanded = !state.trainNavExpanded;
@@ -4928,6 +5106,62 @@ function renderTodayFocus(summary, reviewSnapshot) {
   });
 }
 
+function renderDistractionGate() {
+  if (!elements.gateToggle || !elements.gatePresets) {
+    return;
+  }
+
+  const status = getDistractionGateStatus();
+  const { gate, preset, unlocked, progressPercent, progressLabel, remainingCopy } = status;
+
+  elements.gatePresets.querySelectorAll("[data-gate-preset]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.gatePreset === gate.presetId);
+  });
+
+  if (elements.gateStatusPill) {
+    elements.gateStatusPill.textContent = !gate.enabled
+      ? "Desligado"
+      : unlocked
+        ? "Liberado"
+        : "Bloqueado";
+    elements.gateStatusPill.classList.toggle("muted", !unlocked);
+  }
+
+  if (elements.gateCopy) {
+    elements.gateCopy.textContent = gate.enabled
+      ? `${preset.title}. ${preset.description}`
+      : "Ative um contrato simples: o app so libera seus atalhos de YouTube e Instagram depois de bater a meta escolhida.";
+  }
+
+  if (elements.gateProgressCopy) {
+    elements.gateProgressCopy.textContent = gate.enabled
+      ? `${progressLabel}. ${remainingCopy}`
+      : "Escolha a meta e ative a trava quando quiser levar o estudo mais a serio.";
+  }
+
+  if (elements.gateProgressFill) {
+    elements.gateProgressFill.style.width = `${gate.enabled ? progressPercent : 0}%`;
+  }
+
+  if (elements.gateToggle) {
+    elements.gateToggle.textContent = gate.enabled ? "Desativar trava" : "Ativar trava";
+    elements.gateToggle.className = gate.enabled ? "ghost-button" : "primary-button";
+  }
+
+  if (elements.gateOpenYoutube) {
+    elements.gateOpenYoutube.disabled = !gate.enabled || !unlocked;
+  }
+  if (elements.gateOpenInstagram) {
+    elements.gateOpenInstagram.disabled = !gate.enabled || !unlocked;
+  }
+
+  if (elements.gateNote) {
+    elements.gateNote.textContent = unlocked
+      ? "Atalhos liberados. Se quiser repetir o contrato amanha, e so deixar a trava ligada."
+      : "Dentro do app eu consigo segurar a liberacao. Para bloquear os apps no aparelho inteiro, voce ainda vai precisar do controle do sistema.";
+  }
+}
+
 function renderProgressDashboard() {
   const summary = summarizeProgress();
   const missions = dailyMissionCatalog.map((mission) => {
@@ -4977,6 +5211,7 @@ function renderProgressDashboard() {
   renderReviewQueue(elements.progressReviewList, reviewSnapshot.queue.slice(0, 8));
   renderReviewQueue(elements.reviewPriorityList, reviewSnapshot.queue.slice(0, 5));
   renderTodayFocus(summary, reviewSnapshot);
+  renderDistractionGate();
   renderQuickSession(summary, reviewSnapshot);
   renderActivityTimeline();
   renderTrackGrid();
@@ -6345,6 +6580,7 @@ function defaultProgress() {
     itemReview: {},
     xp: 0,
     daily: createDailyProgressState(),
+    distractionGate: createDistractionGateState(),
     completedStreakDays: 0,
     bestDailyStreak: 0,
     activityLog: [],
