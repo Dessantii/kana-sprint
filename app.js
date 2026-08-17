@@ -18,6 +18,27 @@ const recentLimits = {
   confusion: 5,
   builder: 5,
 };
+const contentRotationModes = [
+  "quiz",
+  "reading",
+  "context",
+  "phrases",
+  "cloze",
+  "dictation",
+  "confusion",
+  "builder",
+];
+const contentRotationMeta = [
+  { mode: "quiz", label: "Teste" },
+  { mode: "reading", label: "Leitura" },
+  { mode: "context", label: "Palavras" },
+  { mode: "phrases", label: "Frases" },
+  { mode: "cloze", label: "Lacunas" },
+  { mode: "dictation", label: "Ditado" },
+  { mode: "confusion", label: "Confusoes" },
+  { mode: "builder", label: "Montagem" },
+];
+const rotationExemptReviewBuckets = new Set(["learning", "today"]);
 
 const rankLadder = [
   { xp: 0, title: "Novato" },
@@ -1071,6 +1092,13 @@ const elements = {
   todayPrimaryAction: document.getElementById("today-primary-action"),
   todayPlanPill: document.getElementById("today-plan-pill"),
   todayPlanList: document.getElementById("today-plan-list"),
+  rotationWindowLabel: document.getElementById("rotation-window-label"),
+  rotationSeenCount: document.getElementById("rotation-seen-count"),
+  rotationTotalCount: document.getElementById("rotation-total-count"),
+  rotationProgress: document.getElementById("rotation-progress"),
+  rotationProgressFill: document.getElementById("rotation-progress-fill"),
+  rotationRenewal: document.getElementById("rotation-renewal"),
+  rotationModeList: document.getElementById("rotation-mode-list"),
   gateStatusPill: document.getElementById("gate-status-pill"),
   gateCopy: document.getElementById("gate-copy"),
   gatePresets: document.getElementById("gate-presets"),
@@ -1811,6 +1839,7 @@ function normalizeLoadedProgress(progress) {
     daily: progress?.daily || createDailyProgressState(),
     activityLog: Array.isArray(progress?.activityLog) ? progress.activityLog : [],
     distractionGate: progress?.distractionGate || createDistractionGateState(),
+    contentRotation: progress?.contentRotation || createContentRotationState(),
   };
   normalized.xp = Number.isFinite(Number(normalized.xp))
     ? Math.max(0, Number(normalized.xp))
@@ -1826,6 +1855,7 @@ function normalizeLoadedProgress(progress) {
   normalized.charReview = normalizeReviewMap(normalized.charReview);
   normalized.itemReview = normalizeReviewMap(normalized.itemReview);
   normalized.distractionGate = normalizeDistractionGateState(normalized.distractionGate);
+  normalized.contentRotation = normalizeContentRotationState(normalized.contentRotation);
   return normalized;
 }
 
@@ -1878,6 +1908,129 @@ function createDailyProgressState(dateKey = getDateKey()) {
   return {
     dateKey,
     missions: {},
+  };
+}
+
+function getRotationWindowKey(date = new Date()) {
+  const anchor = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+  const day = anchor.getDay();
+  const offset = day === 0 ? -6 : 1 - day;
+  anchor.setDate(anchor.getDate() + offset);
+  return `week:${getDateKey(anchor)}`;
+}
+
+function getRotationWindowDates(date = new Date()) {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+  const day = start.getDay();
+  start.setDate(start.getDate() + (day === 0 ? -6 : 1 - day));
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+
+  const renewal = new Date(start);
+  renewal.setDate(renewal.getDate() + 7);
+  return { start, end, renewal };
+}
+
+function createContentRotationState(windowKey = getRotationWindowKey()) {
+  return {
+    windowKey,
+    seenByMode: Object.fromEntries(contentRotationModes.map((mode) => [mode, []])),
+  };
+}
+
+function normalizeContentRotationState(rotation) {
+  const currentWindowKey = getRotationWindowKey();
+  if (!rotation || typeof rotation !== "object" || rotation.windowKey !== currentWindowKey) {
+    return createContentRotationState(currentWindowKey);
+  }
+
+  return {
+    windowKey: currentWindowKey,
+    seenByMode: Object.fromEntries(
+      contentRotationModes.map((mode) => [
+        mode,
+        Array.isArray(rotation.seenByMode?.[mode])
+          ? [...new Set(rotation.seenByMode[mode].filter((id) => typeof id === "string" && id))]
+          : [],
+      ])
+    ),
+  };
+}
+
+function getCurrentContentRotation(progress = state.progress) {
+  if (!progress || typeof progress !== "object") {
+    return createContentRotationState();
+  }
+
+  const normalized = normalizeContentRotationState(progress.contentRotation);
+  if (progress.contentRotation !== normalized) {
+    progress.contentRotation = normalized;
+  }
+  return progress.contentRotation;
+}
+
+function getRotationSeenIds(mode) {
+  if (!contentRotationModes.includes(mode)) {
+    return new Set();
+  }
+  return new Set(getCurrentContentRotation().seenByMode[mode] || []);
+}
+
+function markRotationSeen(mode, id) {
+  if (!contentRotationModes.includes(mode) || !id) {
+    return false;
+  }
+
+  const rotation = getCurrentContentRotation();
+  const current = rotation.seenByMode[mode] || [];
+  if (current.includes(id)) {
+    return false;
+  }
+
+  rotation.seenByMode[mode] = [...current, id];
+  return true;
+}
+
+function getContentRotationDecks() {
+  const contextDeck = getActiveContextDeck();
+  return {
+    quiz: getPracticePool(),
+    reading: getActiveReadingDeck(),
+    context: contextDeck,
+    phrases: getActivePhraseDeck(),
+    cloze: contextDeck.filter((item) => item.chars.length >= 3),
+    dictation: contextDeck,
+    confusion: getActiveConfusionDeck(),
+    builder: getActiveBuilderDeck(),
+  };
+}
+
+function getContentRotationSnapshot() {
+  const rotation = getCurrentContentRotation();
+  const decks = getContentRotationDecks();
+  const modes = contentRotationMeta.map(({ mode, label }) => {
+    const deck = decks[mode] || [];
+    const availableIds = new Set(deck.map((item) => item.id));
+    const seen = (rotation.seenByMode[mode] || []).filter((id) => availableIds.has(id)).length;
+    const total = availableIds.size;
+    return {
+      mode,
+      label,
+      seen,
+      total,
+      percent: total ? Math.round((seen / total) * 100) : 0,
+    };
+  });
+  const seen = modes.reduce((sum, mode) => sum + mode.seen, 0);
+  const total = modes.reduce((sum, mode) => sum + mode.total, 0);
+
+  return {
+    modes,
+    seen,
+    total,
+    percent: total ? Math.round((seen / total) * 100) : 0,
+    ...getRotationWindowDates(),
   };
 }
 
@@ -1943,6 +2096,35 @@ function normalizeReviewMap(reviewMap) {
   return Object.fromEntries(
     Object.entries(reviewMap || {}).map(([id, record]) => [id, normalizeReviewRecord(record)])
   );
+}
+
+function isRotationExemptEntry(entry) {
+  if (!entry) {
+    return false;
+  }
+
+  const review = getReviewRecord(state.progress.charReview, entry.id);
+  if (rotationExemptReviewBuckets.has(getReviewBucket(review))) {
+    return true;
+  }
+
+  return isWeakEntry(entry);
+}
+
+function isRotationExemptItem(item) {
+  if (!item) {
+    return false;
+  }
+
+  const review = getReviewRecord(state.progress.itemReview, item.id);
+  if (rotationExemptReviewBuckets.has(getReviewBucket(review))) {
+    return true;
+  }
+
+  return (item.charIds || [])
+    .map((id) => entryIndex.get(id))
+    .filter(Boolean)
+    .some((entry) => isWeakEntry(entry));
 }
 
 function getMissionValue(daily, missionId) {
@@ -2867,8 +3049,12 @@ function bindControls() {
   elements.nextCard.addEventListener("click", () => moveSelection(1));
   elements.randomCard.addEventListener("click", () => {
     const pool = getStudyPool();
-    const chosen = pickAdaptive(pool, "quiz", (entry) => entry.id, (entry) =>
-      computeCharWeight(entry)
+    const chosen = pickAdaptive(
+      pool,
+      "quiz",
+      (entry) => entry.id,
+      (entry) => computeCharWeight(entry),
+      { trackRotation: false }
     );
     if (!chosen) {
       return;
@@ -4213,8 +4399,12 @@ function startShurikenGame() {
 }
 
 function spawnShurikenToken() {
-  const next = pickAdaptive(getPracticePool(), "quiz", (entry) => entry.id, (entry) =>
-    computeCharWeight(entry)
+  const next = pickAdaptive(
+    getPracticePool(),
+    "quiz",
+    (entry) => entry.id,
+    (entry) => computeCharWeight(entry),
+    { trackRotation: false }
   );
 
   if (!next) {
@@ -5162,6 +5352,59 @@ function renderDistractionGate() {
   }
 }
 
+function formatRotationDate(date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "numeric",
+    month: "short",
+  })
+    .format(date)
+    .replace(" de ", " ")
+    .replace(".", "");
+}
+
+function renderContentRotation() {
+  if (!elements.rotationModeList) {
+    return;
+  }
+
+  const snapshot = getContentRotationSnapshot();
+  if (elements.rotationWindowLabel) {
+    elements.rotationWindowLabel.textContent = `${formatRotationDate(snapshot.start)} a ${formatRotationDate(snapshot.end)}`;
+  }
+  if (elements.rotationSeenCount) {
+    elements.rotationSeenCount.textContent = String(snapshot.seen);
+  }
+  if (elements.rotationTotalCount) {
+    elements.rotationTotalCount.textContent = String(snapshot.total);
+  }
+  if (elements.rotationProgress) {
+    elements.rotationProgress.setAttribute("aria-valuenow", String(snapshot.percent));
+  }
+  if (elements.rotationProgressFill) {
+    elements.rotationProgressFill.style.width = `${snapshot.percent}%`;
+  }
+  if (elements.rotationRenewal) {
+    elements.rotationRenewal.textContent = `Renova automaticamente em ${formatRotationDate(snapshot.renewal)}.`;
+  }
+
+  elements.rotationModeList.innerHTML = snapshot.modes
+    .map(
+      (mode, index) => `
+        <div class="rotation-mode-item${mode.seen >= mode.total && mode.total ? " is-complete" : ""}">
+          <span class="rotation-mode-index">${String(index + 1).padStart(2, "0")}</span>
+          <div class="rotation-mode-copy">
+            <strong>${mode.label}</strong>
+            <span>${mode.seen}/${mode.total}</span>
+          </div>
+          <span class="rotation-mode-track" aria-hidden="true">
+            <i style="width: ${mode.percent}%"></i>
+          </span>
+        </div>
+      `
+    )
+    .join("");
+}
+
 function renderProgressDashboard() {
   const summary = summarizeProgress();
   const missions = dailyMissionCatalog.map((mission) => {
@@ -5211,6 +5454,7 @@ function renderProgressDashboard() {
   renderReviewQueue(elements.progressReviewList, reviewSnapshot.queue.slice(0, 8));
   renderReviewQueue(elements.reviewPriorityList, reviewSnapshot.queue.slice(0, 5));
   renderTodayFocus(summary, reviewSnapshot);
+  renderContentRotation();
   renderDistractionGate();
   renderQuickSession(summary, reviewSnapshot);
   renderActivityTimeline();
@@ -5668,8 +5912,12 @@ function generateQuiz() {
     return;
   }
 
-  const correct = pickAdaptive(pool, "quiz", (entry) => entry.id, (entry) =>
-    computeCharWeight(entry)
+  const correct = pickAdaptive(
+    pool,
+    "quiz",
+    (entry) => entry.id,
+    (entry) => computeCharWeight(entry),
+    { isRotationExempt: isRotationExemptEntry }
   );
   const promptType =
     state.script === "mixed"
@@ -5773,8 +6021,12 @@ function checkQuizAnswer(choice, button) {
 
 function generateReading() {
   const deck = getActiveReadingDeck();
-  state.reading = pickAdaptive(deck, "reading", (item) => item.id, (item) =>
-    computeItemWeight(item)
+  state.reading = pickAdaptive(
+    deck,
+    "reading",
+    (item) => item.id,
+    (item) => computeItemWeight(item),
+    { isRotationExempt: isRotationExemptItem }
   );
   elements.readingInput.value = "";
   clearFeedbackMessage(elements.readingFeedback);
@@ -5840,8 +6092,12 @@ function checkReading() {
 
 function generateContext() {
   const deck = getActiveContextDeck();
-  state.context = pickAdaptive(deck, "context", (item) => item.id, (item) =>
-    computeItemWeight(item)
+  state.context = pickAdaptive(
+    deck,
+    "context",
+    (item) => item.id,
+    (item) => computeItemWeight(item),
+    { isRotationExempt: isRotationExemptItem }
   );
   elements.contextInput.value = "";
   clearFeedbackMessage(elements.contextFeedback);
@@ -5872,8 +6128,12 @@ function getActivePhraseDeck() {
 
 function generatePhrase() {
   const deck = getActivePhraseDeck();
-  state.phrase = pickAdaptive(deck, "phrases", (item) => item.id, (item) =>
-    computeItemWeight(item)
+  state.phrase = pickAdaptive(
+    deck,
+    "phrases",
+    (item) => item.id,
+    (item) => computeItemWeight(item),
+    { isRotationExempt: isRotationExemptItem }
   );
   elements.phraseInput.value = "";
   clearFeedbackMessage(elements.phraseFeedback);
@@ -5995,8 +6255,12 @@ function checkContext() {
 
 function generateCloze() {
   const deck = getActiveContextDeck().filter((item) => item.chars.length >= 3);
-  const item = pickAdaptive(deck, "cloze", (entry) => entry.id, (entry) =>
-    computeItemWeight(entry)
+  const item = pickAdaptive(
+    deck,
+    "cloze",
+    (entry) => entry.id,
+    (entry) => computeItemWeight(entry),
+    { isRotationExempt: isRotationExemptItem }
   );
 
   if (!item) {
@@ -6102,8 +6366,12 @@ function checkClozeAnswer(choice, button) {
 
 function generateDictation() {
   const deck = getActiveContextDeck();
-  state.dictation = pickAdaptive(deck, "dictation", (item) => item.id, (item) =>
-    computeItemWeight(item)
+  state.dictation = pickAdaptive(
+    deck,
+    "dictation",
+    (item) => item.id,
+    (item) => computeItemWeight(item),
+    { isRotationExempt: isRotationExemptItem }
   );
   elements.dictationInput.value = "";
   clearFeedbackMessage(elements.dictationFeedback);
@@ -6169,8 +6437,12 @@ function checkDictation() {
 
 function generateConfusion() {
   const deck = getActiveConfusionDeck();
-  const card = pickAdaptive(deck, "confusion", (item) => item.id, (item) =>
-    computeItemWeight(item)
+  const card = pickAdaptive(
+    deck,
+    "confusion",
+    (item) => item.id,
+    (item) => computeItemWeight(item),
+    { isRotationExempt: isRotationExemptItem }
   );
   state.confusion = {
     ...card,
@@ -6257,8 +6529,12 @@ function checkConfusionAnswer(choice, button) {
 
 function generateBuilder() {
   const deck = getActiveBuilderDeck();
-  const word = pickAdaptive(deck, "builder", (item) => item.id, (item) =>
-    computeItemWeight(item)
+  const word = pickAdaptive(
+    deck,
+    "builder",
+    (item) => item.id,
+    (item) => computeItemWeight(item),
+    { isRotationExempt: isRotationExemptItem }
   );
   const distractorPool = getStudyPool()
     .filter((entry) => entry.script === word.script && !word.chars.includes(entry.char))
@@ -6596,6 +6872,7 @@ function defaultProgress() {
     bestArcadeFoods: 0,
     bestArcadePairs: 0,
     arcadeLastGame: "shuriken",
+    contentRotation: createContentRotationState(),
   };
 }
 
@@ -6930,16 +7207,31 @@ function computeItemWeight(item) {
   return Math.max(0.08, weight);
 }
 
-function pickAdaptive(items, mode, getId, getWeight) {
+function pickAdaptive(items, mode, getId, getWeight, options = {}) {
+  const { trackRotation = true, isRotationExempt = null } = options;
   if (!items.length) {
     return null;
   }
 
-  const recentIds = new Set(state.recent[mode]);
-  const freshItems = items.filter((item) => !recentIds.has(getId(item)));
-  const candidatePool = freshItems.length >= Math.min(4, items.length) ? freshItems : items;
+  let candidatePool = items;
+  if (trackRotation && contentRotationModes.includes(mode)) {
+    const seenIds = getRotationSeenIds(mode);
+    const rotationPool = items.filter((item) => {
+      const id = getId(item);
+      return (typeof isRotationExempt === "function" && isRotationExempt(item)) || !seenIds.has(id);
+    });
 
-  const weighted = candidatePool.map((item) => ({
+    if (rotationPool.length) {
+      candidatePool = rotationPool;
+    }
+  }
+
+  const recentIds = new Set(state.recent[mode]);
+  const freshItems = candidatePool.filter((item) => !recentIds.has(getId(item)));
+  const weightedPool =
+    freshItems.length >= Math.min(4, candidatePool.length) ? freshItems : candidatePool;
+
+  const weighted = weightedPool.map((item) => ({
     item,
     id: getId(item),
     weight: getWeight(item),
@@ -6947,6 +7239,9 @@ function pickAdaptive(items, mode, getId, getWeight) {
 
   const chosen = weightedSample(weighted);
   rememberRecent(mode, getId(chosen));
+  if (trackRotation && markRotationSeen(mode, getId(chosen))) {
+    saveProgress();
+  }
   return chosen;
 }
 

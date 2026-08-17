@@ -676,6 +676,183 @@ a:focus-visible {
   font-size: 1.02rem;
 }
 
+.rotation-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(300px, 1.1fr);
+  gap: 1.15rem 1.4rem;
+  margin-top: 1.35rem;
+  padding: 1.2rem 0 1rem;
+  border-block: 1px solid var(--line-strong);
+}
+
+.rotation-board::before {
+  content: "WEEK / 週";
+  position: absolute;
+  top: -0.52rem;
+  right: 0;
+  padding-left: 0.7rem;
+  background: var(--surface);
+  color: rgba(203, 255, 56, 0.72);
+  font-family: var(--jp-font);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.rotation-board-lead {
+  padding-right: 1.4rem;
+  border-right: 1px solid var(--line);
+}
+
+.rotation-board-lead h3 {
+  max-width: 15ch;
+  margin: 0.15rem 0 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: clamp(1.55rem, 2vw, 2.15rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+
+.rotation-window-label,
+.rotation-renewal,
+.rotation-exception {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.rotation-window-label {
+  margin: 0.72rem 0 0;
+  color: var(--secondary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rotation-board-status {
+  align-self: end;
+}
+
+.rotation-count-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+}
+
+.rotation-count-line strong {
+  color: var(--accent);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: clamp(2.7rem, 4.5vw, 4.4rem);
+  line-height: 0.82;
+}
+
+.rotation-count-line span {
+  max-width: 22ch;
+  color: var(--secondary);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.rotation-count-line b {
+  color: var(--surface-contrast);
+}
+
+.rotation-progress {
+  height: 4px;
+  margin-top: 0.95rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rotation-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--primary));
+  transition: width 260ms ease;
+}
+
+.rotation-renewal {
+  margin: 0.58rem 0 0;
+  font-size: 0.84rem;
+}
+
+.rotation-mode-list {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}
+
+.rotation-mode-item {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem 0.7rem;
+  padding: 0.9rem 0.85rem 0.15rem 0;
+}
+
+.rotation-mode-item:not(:nth-child(4n + 1)) {
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--line);
+}
+
+.rotation-mode-index {
+  padding-top: 0.12rem;
+  color: rgba(203, 255, 56, 0.58);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.rotation-mode-copy {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.rotation-mode-copy strong {
+  overflow: hidden;
+  color: var(--surface-contrast);
+  font-size: 0.87rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rotation-mode-copy span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rotation-mode-track {
+  grid-column: 2;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rotation-mode-track i {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+
+.rotation-mode-item.is-complete .rotation-mode-copy strong,
+.rotation-mode-item.is-complete .rotation-mode-copy span {
+  color: var(--success);
+}
+
+.rotation-exception {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.82rem;
+}
+
 .ghost-button,
 .secondary-button,
 .primary-button,
@@ -745,6 +922,8 @@ button:disabled {
 }
 
 .today-focus-card {
+  border-left: 4px solid var(--signal);
+  border-radius: 8px var(--radius-md) var(--radius-md) 8px;
   background:
     radial-gradient(circle at 100% 0%, rgba(203, 255, 56, 0.08), transparent 22%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
@@ -1034,8 +1213,8 @@ button:disabled {
 
 .today-plan-list {
   display: grid;
-  gap: 0.72rem;
   margin-top: 0.95rem;
+  border-top: 1px solid var(--line);
 }
 
 .today-plan-item {
@@ -1043,10 +1222,8 @@ button:disabled {
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.85rem;
   align-items: center;
-  padding: 0.9rem;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.028);
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .today-plan-step {
@@ -1054,7 +1231,7 @@ button:disabled {
   height: 2.2rem;
   display: grid;
   place-items: center;
-  border-radius: 999px;
+  border-radius: 6px;
   border: 1px solid rgba(203, 255, 56, 0.18);
   background: rgba(203, 255, 56, 0.08);
   color: var(--accent);
@@ -1181,6 +1358,9 @@ button:disabled {
   display: grid;
   align-content: start;
   gap: 0.85rem;
+  align-self: start;
+  position: sticky;
+  top: 6.2rem;
 }
 
 .today-side-head,
@@ -2997,6 +3177,10 @@ button:disabled {
   .detail-card {
     position: static;
   }
+
+  .today-side {
+    position: static;
+  }
 }
 
 @media (max-width: 760px) {
@@ -3197,6 +3381,35 @@ button:disabled {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.65rem;
+  }
+
+  .rotation-board {
+    grid-template-columns: 1fr;
+  }
+
+  .rotation-board-lead {
+    padding-right: 0;
+    padding-bottom: 1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .rotation-board-lead h3 {
+    max-width: 20ch;
+  }
+
+  .rotation-mode-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rotation-mode-item:not(:nth-child(4n + 1)) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .rotation-mode-item:nth-child(even) {
+    padding-left: 0.8rem;
+    border-left: 1px solid var(--line);
   }
 
   .progress-metric-grid,
@@ -3503,6 +3716,15 @@ button:disabled {
   .weak-list {
     grid-template-columns: 1fr;
   }
+
+  .rotation-mode-list {
+    grid-template-columns: 1fr;
+  }
+
+  .rotation-mode-item:nth-child(even) {
+    padding-left: 0;
+    border-left: 0;
+  }
 }
 
 @media (max-width: 360px) {
@@ -3516,6 +3738,20 @@ button:disabled {
   .hero-strip-item,
   .control-block {
     flex-basis: 92%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
