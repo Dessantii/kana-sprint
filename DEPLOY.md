@@ -24,7 +24,7 @@ Passos no Vercel:
 
 1. Importe esta pasta como projeto.
 2. Defina `SUPABASE_URL` e `SUPABASE_ANON_KEY` nas variaveis de ambiente.
-3. Faça o deploy.
+3. Faca o deploy.
 4. O endpoint `/api/runtime-config` injeta essas chaves publicas no frontend automaticamente.
 
 Observacoes:

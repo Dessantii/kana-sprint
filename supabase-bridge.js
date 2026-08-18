@@ -1,6 +1,19 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-
 const authStorageKey = "kanaSprintSupabaseAuthV1";
+const supabaseModuleUrl = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+let createClientPromise = null;
+
+async function resolveCreateClient(injectedCreateClient) {
+  if (typeof injectedCreateClient === "function") {
+    return injectedCreateClient;
+  }
+
+  createClientPromise ||= import(supabaseModuleUrl).then((module) => module.createClient);
+  const createClient = await createClientPromise;
+  if (typeof createClient !== "function") {
+    throw new Error("Cliente Supabase indisponivel.");
+  }
+  return createClient;
+}
 
 function slugifyUserName(value) {
   return value
@@ -21,6 +34,11 @@ function normalizeProgressPayload(progress) {
   return progress && typeof progress === "object" ? progress : {};
 }
 
+function isUniqueViolation(error) {
+  const message = String(error?.message || "").toLowerCase();
+  return error?.code === "23505" || message.includes("duplicate key");
+}
+
 function toLeaderboardEntry(row) {
   return {
     userName: row.display_name,
@@ -36,7 +54,12 @@ function toLeaderboardEntry(row) {
   };
 }
 
-export function createSupabaseBridge({ url, anonKey }) {
+export async function createSupabaseBridge({ url, anonKey, createClient: injectedCreateClient }) {
+  if (!url || !anonKey) {
+    throw new Error("Configuracao do Supabase incompleta.");
+  }
+
+  const createClient = await resolveCreateClient(injectedCreateClient);
   const client = createClient(url, anonKey, {
     auth: {
       persistSession: true,
@@ -97,6 +120,18 @@ export function createSupabaseBridge({ url, anonKey }) {
       .single();
 
     if (error) {
+      if (isUniqueViolation(error)) {
+        const { data: racedProfile, error: racedError } = await client
+          .from("profiles")
+          .select(
+            "id, display_name, xp, weekly_xp, level, rank_title, mastered_count, current_streak, best_daily_streak"
+          )
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!racedError && racedProfile) {
+          return racedProfile;
+        }
+      }
       throw error;
     }
 
@@ -124,7 +159,7 @@ export function createSupabaseBridge({ url, anonKey }) {
       updated_at: new Date().toISOString(),
     });
 
-    if (error) {
+    if (error && !isUniqueViolation(error)) {
       throw error;
     }
 
@@ -200,6 +235,9 @@ export function createSupabaseBridge({ url, anonKey }) {
       if (error) {
         throw error;
       }
+      if (!data.user) {
+        throw new Error("Sessao indisponivel.");
+      }
 
       return getUserBundle(data.user, userName);
     },
@@ -231,21 +269,25 @@ export function createSupabaseBridge({ url, anonKey }) {
       return getUserBundle(data.user, userName);
     },
     async saveProgress({ userId, userName, progress, summary }) {
-      const activeUser = userId ? { id: userId } : await getActiveUser();
+      const activeUser = await getActiveUser();
       if (!activeUser?.id) {
         throw new Error("Sessao indisponivel.");
       }
+      if (userId && activeUser.id !== userId) {
+        throw new Error("A sessao ativa nao corresponde ao progresso salvo.");
+      }
 
+      const safeSummary = summary && typeof summary === "object" ? summary : {};
       const profilePayload = {
         id: activeUser.id,
         display_name: userName,
-        xp: summary.xp || 0,
-        weekly_xp: summary.weeklyXp || 0,
-        level: summary.level || 1,
-        rank_title: summary.rank || "Novato",
-        mastered_count: summary.masteredCount || 0,
-        current_streak: summary.dailyStreak || 0,
-        best_daily_streak: summary.bestDailyStreak || 0,
+        xp: safeSummary.xp || 0,
+        weekly_xp: safeSummary.weeklyXp || 0,
+        level: safeSummary.level || 1,
+        rank_title: safeSummary.rank || "Novato",
+        mastered_count: safeSummary.masteredCount || 0,
+        current_streak: safeSummary.dailyStreak || 0,
+        best_daily_streak: safeSummary.bestDailyStreak || 0,
         updated_at: new Date().toISOString(),
       };
 

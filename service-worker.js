@@ -1,4 +1,4 @@
-const CACHE_NAME = "kana-sprint-shell-v4";
+const CACHE_NAME = "kana-sprint-shell-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,6 +10,39 @@ const APP_SHELL = [
   "./icon-512.png",
   "./supabase-config.js",
 ];
+const NETWORK_FIRST_FILES = new Set([
+  "",
+  "index.html",
+  "styles.css",
+  "app.js",
+  "manifest.webmanifest",
+  "supabase-config.js",
+]);
+
+function getScopedPath(url) {
+  const scopePath = new URL(self.registration.scope).pathname;
+  return url.pathname.startsWith(scopePath) ? url.pathname.slice(scopePath.length) : null;
+}
+
+async function cacheSuccessfulResponse(request, response) {
+  if (response?.status === 200 && response.type === "basic") {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.put(request, response.clone());
+  }
+  return response;
+}
+
+async function networkFirst(request, fallbackRequest = request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      return cacheSuccessfulResponse(request, response);
+    }
+    return (await caches.match(fallbackRequest)) || response;
+  } catch {
+    return caches.match(fallbackRequest);
+  }
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -35,20 +68,23 @@ self.addEventListener("fetch", (event) => {
   }
 
   const requestUrl = new URL(event.request.url);
+  const scopedPath = getScopedPath(requestUrl);
   if (requestUrl.origin !== self.location.origin) {
     return;
   }
 
+  if (scopedPath === "api/runtime-config") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", copy));
-          return response;
-        })
-        .catch(() => caches.match("./index.html"))
-    );
+    event.respondWith(networkFirst(event.request, "./index.html"));
+    return;
+  }
+
+  if (scopedPath !== null && NETWORK_FIRST_FILES.has(scopedPath)) {
+    event.respondWith(networkFirst(event.request));
     return;
   }
 

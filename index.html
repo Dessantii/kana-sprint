@@ -626,7 +626,10 @@
                       type="text"
                       autocomplete="off"
                       spellcheck="false"
+                      aria-label="Resposta em romaji"
+                      aria-describedby="reading-feedback"
                       placeholder="Digite em romaji"
+                      required
                     />
                     <button type="submit" class="primary-button">Conferir</button>
                   </form>
@@ -655,6 +658,9 @@
 
                   <div class="context-card">
                     <div class="context-word" id="context-word">&#12371;&#12435;&#12395;&#12385;&#12399;</div>
+                    <p class="context-breakdown" id="context-breakdown" hidden>
+                      ko / n / ni / chi / wa
+                    </p>
                     <p class="context-meaning" id="context-meaning">ola</p>
                   </div>
 
@@ -669,7 +675,10 @@
                       type="text"
                       autocomplete="off"
                       spellcheck="false"
+                      aria-label="Resposta em romaji"
+                      aria-describedby="context-feedback"
                       placeholder="Digite em romaji"
+                      required
                     />
                     <button type="submit" class="primary-button">Conferir</button>
                   </form>
@@ -710,8 +719,8 @@
                     <div class="context-word" id="phrase-word">
                       &#12371;&#12435;&#12395;&#12385;&#12399;&#12381;&#12425;&#12399;&#12354;&#12362;&#12356;&#12391;&#12377;
                     </div>
-                    <p class="context-breakdown" id="phrase-breakdown">
-                      ko / n / ni / chi / ha / so / ra / ha / a / o / i / de / su
+                    <p class="context-breakdown" id="phrase-breakdown" hidden>
+                      konnichiwa / sora wa aoi desu
                     </p>
                     <p class="context-meaning" id="phrase-meaning">ola, o ceu esta azul</p>
                   </div>
@@ -726,7 +735,10 @@
                       type="text"
                       autocomplete="off"
                       spellcheck="false"
+                      aria-label="Resposta em romaji"
+                      aria-describedby="phrase-feedback"
                       placeholder="Digite em romaji"
+                      required
                     />
                     <button type="submit" class="primary-button">Conferir</button>
                   </form>
@@ -790,7 +802,10 @@
                       type="text"
                       autocomplete="off"
                       spellcheck="false"
+                      aria-label="Resposta em romaji"
+                      aria-describedby="dictation-feedback"
                       placeholder="Digite em romaji"
+                      required
                     />
                     <button type="submit" class="primary-button">Conferir</button>
                   </form>

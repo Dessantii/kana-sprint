@@ -2122,6 +2122,10 @@ button:disabled {
   color: var(--secondary);
 }
 
+.context-breakdown[hidden] {
+  display: none;
+}
+
 .context-meaning {
   margin-top: 0.2rem;
   color: var(--muted);
@@ -2212,6 +2216,20 @@ button:disabled {
 .reading-form input:focus {
   border-color: rgba(203, 255, 56, 0.38);
   outline: none;
+}
+
+.reading-form input:disabled {
+  border-color: rgba(64, 217, 138, 0.28);
+  background: rgba(64, 217, 138, 0.06);
+  color: var(--ink);
+  opacity: 1;
+}
+
+.reading-form .primary-button:disabled {
+  background: linear-gradient(135deg, rgba(64, 217, 138, 0.82), rgba(38, 166, 112, 0.82));
+  box-shadow: none;
+  color: #07140e;
+  opacity: 1;
 }
 
 .builder-target {

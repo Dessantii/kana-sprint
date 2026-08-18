@@ -626,14 +626,14 @@ const contextDecks = createContextDecks({
   hiragana: {
     base: [
       ["\u304a\u306f\u3088\u3046", "ohayou", "o / ha / yo / u", "bom dia", "expressao"],
-      ["\u3053\u3093\u306b\u3061\u306f", "konnichiha", "ko / n / ni / chi / ha", "ola", "expressao"],
+      ["\u3053\u3093\u306b\u3061\u306f", "konnichiwa", "ko / n / ni / chi / wa", "ola", "expressao", ["konnichiha"]],
       ["\u3055\u3088\u3046\u306a\u3089", "sayounara", "sa / yo / u / na / ra", "ate logo", "expressao"],
       ["\u306e\u308a\u3082\u306e", "norimono", "no / ri / mo / no", "veiculo", "palavra"],
       ["\u3053\u3053\u308d", "kokoro", "ko / ko / ro", "coracao", "palavra"],
-      ["\u305d\u3089\u3092\u307f\u308b", "sorawomiru", "so / ra / o / mi / ru", "olhar o ceu", "frase"],
-      ["\u3044\u3048\u306b\u3044\u304f", "ieniiku", "i / e / ni / i / ku", "ir para casa", "frase"],
-      ["\u3044\u306c\u3068\u306d\u3053", "inutoneko", "i / nu / to / ne / ko", "cachorro e gato", "frase"],
-      ["\u3075\u3086\u306e\u3088\u308b", "fuyunoyoru", "fu / yu / no / yo / ru", "noite de inverno", "frase"],
+      ["\u305d\u3089\u3092\u307f\u308b", "sora o miru", "sora o / miru", "olhar o ceu", "frase", ["sora wo miru"]],
+      ["\u3044\u3048\u306b\u3044\u304f", "ie ni iku", "ie ni / iku", "ir para casa", "frase"],
+      ["\u3044\u306c\u3068\u306d\u3053", "inu to neko", "inu to / neko", "cachorro e gato", "frase"],
+      ["\u3075\u3086\u306e\u3088\u308b", "fuyu no yoru", "fuyu no / yoru", "noite de inverno", "frase"],
       ["\u3084\u3055\u3044", "yasai", "ya / sa / i", "verduras", "palavra"],
     ],
     extended: [
@@ -643,10 +643,10 @@ const contextDecks = createContextDecks({
       ["\u305f\u3079\u3082\u306e", "tabemono", "ta / be / mo / no", "comida", "palavra"],
       ["\u306e\u307f\u3082\u306e", "nomimono", "no / mi / mo / no", "bebida", "palavra"],
       ["\u3042\u3055\u3054\u306f\u3093", "asagohan", "a / sa / go / ha / n", "cafe da manha", "palavra"],
-      ["\u307f\u305a\u3092\u306e\u3080", "mizuwonomu", "mi / zu / o / no / mu", "beber agua", "frase"],
-      ["\u3054\u306f\u3093\u3092\u305f\u3079\u308b", "gohanwotaberu", "go / ha / n / o / ta / be / ru", "comer refeicao", "frase"],
-      ["\u306d\u3053\u304c\u3044\u308b", "nekogairu", "ne / ko / ga / i / ru", "ha um gato", "frase"],
-      ["\u3067\u3093\u304d\u304c\u3064\u304f", "denkigatsuku", "de / n / ki / ga / tsu / ku", "a luz acende", "frase"],
+      ["\u307f\u305a\u3092\u306e\u3080", "mizu o nomu", "mizu o / nomu", "beber agua", "frase", ["mizu wo nomu"]],
+      ["\u3054\u306f\u3093\u3092\u305f\u3079\u308b", "gohan o taberu", "gohan o / taberu", "comer refeicao", "frase", ["gohan wo taberu"]],
+      ["\u306d\u3053\u304c\u3044\u308b", "neko ga iru", "neko ga / iru", "ha um gato", "frase"],
+      ["\u3067\u3093\u304d\u304c\u3064\u304f", "denki ga tsuku", "denki ga / tsuku", "a luz acende", "frase"],
     ],
   },
   katakana: {
@@ -682,64 +682,69 @@ const phraseDecks = createPhraseDecks({
     [
       "saudacoes",
       "\u3053\u3093\u306b\u3061\u306f\u305d\u3089\u306f\u3042\u304a\u3044\u3067\u3059",
-      "konnichihasorahaaoidesu",
-      "ko / n / ni / chi / ha / so / ra / ha / a / o / i / de / su",
+      "konnichiwa sora wa aoi desu",
+      "konnichiwa / sora wa aoi desu",
       "ola, o ceu esta azul",
-      "abrindo a conversa com calma"
+      "abrindo a conversa com calma",
+      ["konnichiha sora ha aoi desu"]
     ],
     [
       "saudacoes",
       "\u307e\u305f\u3042\u3068\u3067\u3053\u3053\u3067\u3042\u3046",
-      "mataatodekokodeau",
-      "ma / ta / a / to / de / ko / ko / de / a / u",
+      "mata ato de koko de au",
+      "mata ato de / koko de au",
       "a gente se ve aqui mais tarde",
       "combinando um reencontro"
     ],
     [
       "viagem",
       "\u3048\u304d\u307e\u3067\u3042\u308b\u3044\u3066\u3044\u304f",
-      "ekimadearuiteiku",
-      "e / ki / ma / de / a / ru / i / te / i / ku",
+      "eki made aruite iku",
+      "eki made / aruite iku",
       "vou andando ate a estacao",
       "indo para a estacao"
     ],
     [
       "viagem",
       "\u307b\u3066\u308b\u306e\u3078\u3084\u3067\u306b\u3082\u3064\u3092\u304a\u304f",
-      "hoterunoheyadenimotsuwooku",
-      "ho / te / ru / no / he / ya / de / ni / mo / tsu / o / o / ku",
+      "hoteru no heya de nimotsu o oku",
+      "hoteru no heya de / nimotsu o oku",
       "deixo a bagagem no quarto do hotel",
-      "chegando na hospedagem"
+      "chegando na hospedagem",
+      ["hoteru no heya de nimotsu wo oku"]
     ],
     [
       "conversa",
       "\u3044\u307e\u306a\u306b\u3092\u3057\u3066\u3044\u308b\u306e\u3067\u3059\u304b",
-      "imananiwoshiteirunodesuka",
-      "i / ma / na / ni / o / shi / te / i / ru / no / de / su / ka",
+      "ima nani o shite iru no desu ka",
+      "ima / nani o shite iru no desu ka",
       "o que voce esta fazendo agora?",
-      "puxando assunto"
+      "puxando assunto",
+      ["ima nani wo shite iru no desu ka"]
     ],
     [
       "conversa",
       "\u308f\u305f\u3057\u306f\u3053\u306e\u3046\u305f\u304c\u3059\u304d\u3067\u3059",
-      "watashihakonoutagasukidesu",
-      "wa / ta / shi / ha / ko / no / u / ta / ga / su / ki / de / su",
+      "watashi wa kono uta ga suki desu",
+      "watashi wa / kono uta ga suki desu",
       "eu gosto desta musica",
-      "falando de gosto pessoal"
+      "falando de gosto pessoal",
+      ["watashi ha kono uta ga suki desu"]
     ],
     [
       "anime",
       "\u3053\u306e\u3042\u306b\u3081\u306f\u3055\u3044\u3054\u307e\u3067\u307f\u305f\u3044",
-      "konoanimehasaigomademitai",
-      "ko / no / a / ni / me / ha / sa / i / go / ma / de / mi / ta / i",
+      "kono anime wa saigo made mitai",
+      "kono anime wa / saigo made mitai",
       "quero ver este anime ate o fim",
-      "comentando uma serie"
+      "comentando uma serie",
+      ["kono anime ha saigo made mitai"]
     ],
     [
       "anime",
       "\u3064\u304e\u306e\u306f\u306a\u3057\u3082\u307e\u305f\u307f\u308b",
-      "tsuginohanashimomatamiru",
-      "tsu / gi / no / ha / na / shi / mo / ma / ta / mi / ru",
+      "tsugi no hanashi mo mata miru",
+      "tsugi no hanashi mo / mata miru",
       "vou ver o proximo episodio tambem",
       "continuando a historia"
     ],
@@ -748,64 +753,69 @@ const phraseDecks = createPhraseDecks({
     [
       "saudacoes",
       "\u304a\u306f\u3088\u3046\u3054\u3056\u3044\u307e\u3059\u307e\u305f\u3042\u3068\u3067\u3042\u3046",
-      "ohayougozaimasumataatodeau",
-      "o / ha / yo / u / go / za / i / ma / su / ma / ta / a / to / de / a / u",
+      "ohayou gozaimasu mata ato de au",
+      "ohayou gozaimasu / mata ato de au",
       "bom dia, nos vemos mais tarde",
       "falando com mais educacao"
     ],
     [
       "saudacoes",
       "\u304a\u3084\u3059\u307f\u306d\u3080\u308b\u307e\u3048\u306b\u307e\u3069\u3092\u3057\u3081\u3066\u306d",
-      "oyasuminemurumaaenimadowoshimetene",
-      "o / ya / su / mi / ne / mu / ru / ma / e / ni / ma / do / o / shi / me / te / ne",
+      "oyasumi nemuru mae ni mado o shimete ne",
+      "oyasumi / nemuru mae ni / mado o shimete ne",
       "boa noite, feche a janela antes de dormir",
-      "encerrando o dia"
+      "encerrando o dia",
+      ["oyasumi nemuru mae ni mado wo shimete ne"]
     ],
     [
       "viagem",
       "\u3070\u3059\u306e\u3058\u304b\u3093\u3092\u3057\u3089\u3079\u3066\u304b\u3089\u3067\u308b",
-      "basunojikanwoshirabetekaraderu",
-      "ba / su / no / ji / ka / n / o / shi / ra / be / te / ka / ra / de / ru",
+      "basu no jikan o shirabete kara deru",
+      "basu no jikan o / shirabete kara deru",
       "eu vejo o horario do onibus antes de sair",
-      "planejando a rota"
+      "planejando a rota",
+      ["basu no jikan wo shirabete kara deru"]
     ],
     [
       "viagem",
       "\u307f\u3061\u304c\u308f\u304b\u3089\u306a\u3044\u306e\u3067\u3048\u304d\u3044\u3093\u306b\u304d\u304f",
-      "michigawakaranainodeekiinnikiku",
-      "mi / chi / ga / wa / ka / ra / na / i / no / de / e / ki / i / n / ni / ki / ku",
+      "michi ga wakaranai node ekiin ni kiku",
+      "michi ga wakaranai node / ekiin ni kiku",
       "como nao sei o caminho, pergunto para a pessoa da estacao",
       "pedindo ajuda"
     ],
     [
       "conversa",
       "\u305d\u306e\u306f\u306a\u3057\u3092\u304d\u3044\u3066\u3068\u3066\u3082\u3042\u3093\u3057\u3093\u3057\u305f",
-      "sonohanashiwokiitetotemoanshinshita",
-      "so / no / ha / na / shi / o / ki / i / te / to / te / mo / a / n / shi / n / shi / ta",
+      "sono hanashi o kiite totemo anshin shita",
+      "sono hanashi o kiite / totemo anshin shita",
       "fiquei muito aliviado depois de ouvir isso",
-      "respondendo com emocao"
+      "respondendo com emocao",
+      ["sono hanashi wo kiite totemo anshin shita"]
     ],
     [
       "conversa",
       "\u3053\u3093\u3069\u306e\u3084\u3059\u307f\u306b\u3069\u3053\u3078\u3044\u304d\u305f\u3044\u3067\u3059\u304b",
-      "kondonoyasuminidokoheikitaidesuka",
-      "ko / n / do / no / ya / su / mi / ni / do / ko / he / i / ki / ta / i / de / su / ka",
+      "kondo no yasumi ni doko e ikitai desu ka",
+      "kondo no yasumi ni / doko e ikitai desu ka",
       "nas proximas ferias, para onde voce quer ir?",
-      "planejando algo junto"
+      "planejando algo junto",
+      ["kondo no yasumi ni doko he ikitai desu ka"]
     ],
     [
       "anime",
       "\u3053\u306e\u3042\u306b\u3081\u306e\u3064\u3065\u304d\u304c\u3068\u3066\u3082\u304d\u306b\u306a\u308b",
-      "konoanimenotsudukigatotemokininaru",
-      "ko / no / a / ni / me / no / tsu / du / ki / ga / to / te / mo / ki / ni / na / ru",
+      "kono anime no tsuzuki ga totemo ki ni naru",
+      "kono anime no tsuzuki ga / totemo ki ni naru",
       "estou muito curioso com a continuacao deste anime",
-      "falando do proximo arco"
+      "falando do proximo arco",
+      ["kono anime no tsuduki ga totemo ki ni naru"]
     ],
     [
       "anime",
       "\u3055\u3044\u3054\u306e\u305b\u308a\u3075\u304c\u3053\u3053\u308d\u306b\u306e\u3053\u308a\u307e\u3057\u305f",
-      "saigonoserifugakokoroninokorimashita",
-      "sa / i / go / no / se / ri / fu / ga / ko / ko / ro / ni / no / ko / ri / ma / shi / ta",
+      "saigo no serifu ga kokoro ni nokorimashita",
+      "saigo no serifu ga / kokoro ni nokorimashita",
       "a fala final ficou no meu coracao",
       "lembrando uma cena forte"
     ],
@@ -1449,7 +1459,7 @@ async function initializeRuntime() {
 
   try {
     const bridgeModule = await import("./supabase-bridge.js");
-    runtime.bridge = bridgeModule.createSupabaseBridge({
+    runtime.bridge = await bridgeModule.createSupabaseBridge({
       url: config.supabaseUrl,
       anonKey: config.supabaseAnonKey,
     });
@@ -1489,8 +1499,10 @@ async function loadRuntimeConfig() {
     }
     const serverConfig = await response.json();
     return {
-      ...localConfig,
-      ...serverConfig,
+      supabaseUrl: String(serverConfig?.supabaseUrl || localConfig.supabaseUrl || "").trim(),
+      supabaseAnonKey: String(
+        serverConfig?.supabaseAnonKey || localConfig.supabaseAnonKey || ""
+      ).trim(),
     };
   } catch {
     return localConfig;
@@ -2645,6 +2657,9 @@ function getCloudErrorMessage(error, fallbackMessage) {
   if (message.includes("user already registered")) {
     return "Esse nome ja esta em uso.";
   }
+  if (message.includes("duplicate key") || message.includes("unique constraint")) {
+    return "Esse nome ja esta em uso.";
+  }
   if (message.includes("password")) {
     return "No modo online, a senha precisa ter pelo menos 6 caracteres.";
   }
@@ -3080,24 +3095,7 @@ function bindControls() {
     }
   });
 
-  elements.showReadingAnswer.addEventListener("click", () => {
-    if (!state.reading) {
-      return;
-    }
-    state.readingStreak = 0;
-    markItemProgress(state.reading.id, false);
-    markTextProgress(state.reading.text, false);
-    const delta = applyXpDelta(xpTable.reading.reveal);
-    elements.readingStreakLabel.textContent = `Sequencia: ${state.readingStreak}`;
-    elements.readingFeedback.textContent =
-      `${state.reading.answer} • ${state.reading.breakdown}${state.reading.pseudo ? " • combinacao de treino" : ""}`;
-    elements.readingFeedback.textContent =
-      `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`;
-    saveProgress();
-    renderStats();
-    renderDetailCard();
-    renderFocusRadar();
-  });
+  elements.showReadingAnswer.addEventListener("click", revealReadingAnswer);
 
   elements.nextReading.addEventListener("click", () => {
     generateReading();
@@ -3115,24 +3113,7 @@ function bindControls() {
     }
   });
 
-  elements.showContextAnswer.addEventListener("click", () => {
-    if (!state.context) {
-      return;
-    }
-    state.contextStreak = 0;
-    markItemProgress(state.context.id, false);
-    markTextProgress(state.context.text, false);
-    const delta = applyXpDelta(xpTable.context.reveal);
-    elements.contextStreakLabel.textContent = `Sequencia: ${state.contextStreak}`;
-    elements.contextFeedback.textContent =
-      `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning}`;
-    elements.contextFeedback.textContent =
-      `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`;
-    saveProgress();
-    renderStats();
-    renderDetailCard();
-    renderFocusRadar();
-  });
+  elements.showContextAnswer.addEventListener("click", revealContextAnswer);
 
   elements.nextContext.addEventListener("click", () => {
     generateContext();
@@ -3158,22 +3139,7 @@ function bindControls() {
     }
   });
 
-  elements.showPhraseAnswer?.addEventListener("click", () => {
-    if (!state.phrase) {
-      return;
-    }
-    state.phraseStreak = 0;
-    markItemProgress(state.phrase.id, false);
-    markTextProgress(state.phrase.text, false);
-    const delta = applyXpDelta(xpTable.phrases.reveal);
-    elements.phraseStreakLabel.textContent = `Sequencia: ${state.phraseStreak}`;
-    elements.phraseFeedback.textContent =
-      `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
-    saveProgress();
-    renderStats();
-    renderDetailCard();
-    renderFocusRadar();
-  });
+  elements.showPhraseAnswer?.addEventListener("click", revealPhraseAnswer);
 
   elements.nextPhrase?.addEventListener("click", () => {
     generatePhrase();
@@ -3196,24 +3162,7 @@ function bindControls() {
     }
   });
 
-  elements.showDictationAnswer.addEventListener("click", () => {
-    if (!state.dictation) {
-      return;
-    }
-    state.dictationStreak = 0;
-    markItemProgress(state.dictation.id, false);
-    markTextProgress(state.dictation.text, false);
-    const delta = applyXpDelta(xpTable.dictation.reveal);
-    elements.dictationStreakLabel.textContent = `Sequencia: ${state.dictationStreak}`;
-    elements.dictationFeedback.textContent =
-      `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning}`;
-    elements.dictationFeedback.textContent =
-      `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning} (${formatXpDelta(delta)})`;
-    saveProgress();
-    renderStats();
-    renderDetailCard();
-    renderFocusRadar();
-  });
+  elements.showDictationAnswer.addEventListener("click", revealDictationAnswer);
 
   elements.nextDictation.addEventListener("click", () => {
     generateDictation();
@@ -3247,26 +3196,7 @@ function bindControls() {
     renderBuilder();
   });
 
-  elements.showBuilderAnswer.addEventListener("click", () => {
-    if (!state.builder) {
-      return;
-    }
-    state.builder.selected = [...state.builder.chars];
-    state.builder.locked = true;
-    state.builderStreak = 0;
-    markItemProgress(state.builder.id, false);
-    markTextProgress(state.builder.text, false);
-    const delta = applyXpDelta(xpTable.builder.reveal);
-    elements.builderFeedback.textContent =
-      `${state.builder.text} • ${state.builder.romajiLabel} • ${state.builder.meaning}`;
-    elements.builderFeedback.textContent =
-      `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`;
-    saveProgress();
-    renderStats();
-    renderBuilder();
-    renderDetailCard();
-    renderFocusRadar();
-  });
+  elements.showBuilderAnswer.addEventListener("click", revealBuilderAnswer);
 
   elements.nextBuilder.addEventListener("click", () => {
     generateBuilder();
@@ -3351,33 +3281,7 @@ function bindControls() {
     elements.shurikenStart.addEventListener("click", () => startShurikenGame());
   }
 
-  if (elements.shurikenInput) {
-    elements.shurikenInput.addEventListener("input", () => {
-      if (!state.arcade.shuriken.running || !state.arcade.shuriken.current) {
-        return;
-      }
-
-      const typed = normalizeRomanization(elements.shurikenInput.value);
-      const expected = normalizeRomanization(state.arcade.shuriken.current.romaji);
-      if (typed !== expected) {
-        return;
-      }
-
-      markCharProgress(state.arcade.shuriken.current.id, true);
-      const delta = applyXpDelta(xpTable.arcadeShurikenHit);
-      state.arcade.shuriken.score += 10 + state.arcade.shuriken.combo * 3;
-      state.arcade.shuriken.combo += 1;
-      state.progress.bestArcadeShuriken = Math.max(
-        state.progress.bestArcadeShuriken || 0,
-        state.arcade.shuriken.score
-      );
-      state.arcade.shuriken.status =
-        `${state.arcade.shuriken.current.char} dominado. Proximo arremesso. (${formatXpDelta(delta)})`;
-      saveProgress();
-      spawnShurikenToken();
-      renderArcade();
-    });
-  }
+  elements.shurikenInput?.addEventListener("input", handleShurikenInput);
 
   if (elements.foodStart) {
     elements.foodStart.addEventListener("click", () => startFoodGame());
@@ -3397,231 +3301,6 @@ function bindControls() {
     elements.pairsStart.addEventListener("click", () => startPairsGame());
   }
 
-  bindEnhancedActivityHandlers();
-}
-
-function bindEnhancedActivityHandlers() {
-  elements.showReadingAnswer?.addEventListener(
-    "click",
-    (event) => {
-      if (!state.reading) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      state.readingStreak = 0;
-      const itemMeta = markItemProgress(state.reading.id, false);
-      const charMetas = markTextProgress(state.reading.text, false);
-      const delta = applyXpDelta(xpTable.reading.reveal);
-      recordActivityEvent({
-        xpDelta: delta,
-        success: false,
-        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
-      });
-      recordTrainBlockAttempt("reading", false);
-      queueMicrotask(() => {
-        setFeedbackMessage(
-          elements.readingFeedback,
-          "info",
-          `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`
-        );
-      });
-      elements.readingStreakLabel.textContent = `Sequencia: ${state.readingStreak}`;
-      elements.readingFeedback.textContent =
-        `${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`;
-      saveProgress();
-      renderStats();
-      renderDetailCard();
-      renderFocusRadar();
-    },
-    true
-  );
-
-  elements.showContextAnswer?.addEventListener(
-    "click",
-    (event) => {
-      if (!state.context) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      state.contextStreak = 0;
-      const itemMeta = markItemProgress(state.context.id, false);
-      const charMetas = markTextProgress(state.context.text, false);
-      const delta = applyXpDelta(xpTable.context.reveal);
-      recordActivityEvent({
-        xpDelta: delta,
-        success: false,
-        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
-        phraseBlock: true,
-      });
-      recordTrainBlockAttempt("context", false);
-      queueMicrotask(() => {
-        setFeedbackMessage(
-          elements.contextFeedback,
-          "info",
-          `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`
-        );
-      });
-      elements.contextStreakLabel.textContent = `Sequencia: ${state.contextStreak}`;
-      elements.contextFeedback.textContent =
-        `${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`;
-      saveProgress();
-      renderStats();
-      renderDetailCard();
-      renderFocusRadar();
-    },
-    true
-  );
-
-  elements.showPhraseAnswer?.addEventListener(
-    "click",
-    (event) => {
-      if (!state.phrase) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      state.phraseStreak = 0;
-      const itemMeta = markItemProgress(state.phrase.id, false);
-      const charMetas = markTextProgress(state.phrase.text, false);
-      const delta = applyXpDelta(xpTable.phrases.reveal);
-      recordActivityEvent({
-        xpDelta: delta,
-        success: false,
-        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
-        phraseBlock: true,
-      });
-      recordTrainBlockAttempt("phrases", false);
-      queueMicrotask(() => {
-        setFeedbackMessage(
-          elements.phraseFeedback,
-          "info",
-          `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`
-        );
-      });
-      elements.phraseStreakLabel.textContent = `Sequencia: ${state.phraseStreak}`;
-      elements.phraseFeedback.textContent =
-        `${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
-      saveProgress();
-      renderStats();
-      renderDetailCard();
-      renderFocusRadar();
-    },
-    true
-  );
-
-  elements.showDictationAnswer?.addEventListener(
-    "click",
-    (event) => {
-      if (!state.dictation) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      state.dictationStreak = 0;
-      const itemMeta = markItemProgress(state.dictation.id, false);
-      const charMetas = markTextProgress(state.dictation.text, false);
-      const delta = applyXpDelta(xpTable.dictation.reveal);
-      recordActivityEvent({
-        xpDelta: delta,
-        success: false,
-        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
-        phraseBlock: true,
-      });
-      recordTrainBlockAttempt("dictation", false);
-      queueMicrotask(() => {
-        setFeedbackMessage(
-          elements.dictationFeedback,
-          "info",
-          `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning} (${formatXpDelta(delta)})`
-        );
-      });
-      elements.dictationStreakLabel.textContent = `Sequencia: ${state.dictationStreak}`;
-      elements.dictationFeedback.textContent =
-        `${state.dictation.answer} | ${state.dictation.breakdown} | ${state.dictation.meaning} (${formatXpDelta(delta)})`;
-      saveProgress();
-      renderStats();
-      renderDetailCard();
-      renderFocusRadar();
-    },
-    true
-  );
-
-  elements.showBuilderAnswer?.addEventListener(
-    "click",
-    (event) => {
-      if (!state.builder) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      state.builder.selected = [...state.builder.chars];
-      state.builder.locked = true;
-      state.builderStreak = 0;
-      const itemMeta = markItemProgress(state.builder.id, false);
-      const charMetas = markTextProgress(state.builder.text, false);
-      const delta = applyXpDelta(xpTable.builder.reveal);
-      recordActivityEvent({
-        xpDelta: delta,
-        success: false,
-        wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
-      });
-      recordTrainBlockAttempt("builder", false);
-      queueMicrotask(() => {
-        setFeedbackMessage(
-          elements.builderFeedback,
-          "info",
-          `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`
-        );
-      });
-      elements.builderFeedback.textContent =
-        `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`;
-      saveProgress();
-      renderStats();
-      renderBuilder();
-      renderDetailCard();
-      renderFocusRadar();
-    },
-    true
-  );
-
-  elements.shurikenInput?.addEventListener(
-    "input",
-    (event) => {
-      if (!state.arcade.shuriken.running || !state.arcade.shuriken.current) {
-        return;
-      }
-
-      const typed = normalizeRomanization(event.target.value);
-      const expected = normalizeRomanization(state.arcade.shuriken.current.romaji);
-      if (typed !== expected) {
-        return;
-      }
-
-      event.stopImmediatePropagation();
-      const reviewMeta = markCharProgress(state.arcade.shuriken.current.id, true);
-      const delta = applyXpDelta(xpTable.arcadeShurikenHit);
-      recordActivityEvent({
-        xpDelta: delta,
-        success: true,
-        wasDue: reviewMeta.wasDue,
-      });
-      state.arcade.shuriken.score += 10 + state.arcade.shuriken.combo * 3;
-      state.arcade.shuriken.combo += 1;
-      state.progress.bestArcadeShuriken = Math.max(
-        state.progress.bestArcadeShuriken || 0,
-        state.arcade.shuriken.score
-      );
-      state.arcade.shuriken.status =
-        `${state.arcade.shuriken.current.char} dominado. Proximo arremesso. (${formatXpDelta(delta)})`;
-      saveProgress();
-      renderStats();
-      spawnShurikenToken();
-      renderArcade();
-    },
-    true
-  );
 }
 
 function setSection(section, trainTarget) {
@@ -3821,6 +3500,255 @@ function setFeedbackMessage(element, tone, message) {
   }
 
   element.classList.add("is-info");
+}
+
+function setTypedExerciseState(form, input, answered) {
+  if (input) {
+    input.disabled = Boolean(answered);
+  }
+  const submit = form?.querySelector('button[type="submit"]');
+  if (submit) {
+    submit.disabled = Boolean(answered);
+    submit.textContent = answered ? "Resposta registrada" : "Conferir";
+  }
+}
+
+function setBreakdownVisibility(element, visible) {
+  if (element) {
+    element.hidden = !visible;
+  }
+}
+
+function getRomanizationCorrection(value, item) {
+  const typed = normalizeRomanization(value);
+  const expected = normalizeRomanization(item?.answer);
+  if (expected.includes("nn") && expected.replace("nn", "n") === typed) {
+    return " Dica: o kana ん antes de に aparece como nn em romaji.";
+  }
+  return "";
+}
+
+function checkTypedExercise({
+  stateKey,
+  mode,
+  input,
+  form,
+  feedback,
+  breakdownElement = null,
+  streakKey,
+  bestStreakKey,
+  xp,
+  phraseBlock = false,
+  successMessage,
+  failureMessage,
+}) {
+  const item = state[stateKey];
+  if (!item || item.answered) {
+    return;
+  }
+
+  const typed = normalizeRomanization(input?.value);
+  if (!typed) {
+    setFeedbackMessage(feedback, "info", "Digite uma resposta em romaji antes de conferir.");
+    input?.focus();
+    return;
+  }
+
+  const isCorrect = isRomanizationAnswer(input.value, item);
+  item.answered = true;
+  setTypedExerciseState(form, input, true);
+  setBreakdownVisibility(breakdownElement, true);
+
+  const itemMeta = markItemProgress(item.id, isCorrect);
+  const charMetas = markTextProgress(item.text, isCorrect);
+  const delta = applyXpDelta(isCorrect ? xp.correct : xp.wrong);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: isCorrect,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+    phraseBlock,
+  });
+  recordTrainBlockAttempt(mode, isCorrect);
+
+  if (isCorrect) {
+    state[streakKey] += 1;
+    state.progress[bestStreakKey] = Math.max(
+      state.progress[bestStreakKey] || 0,
+      state[streakKey]
+    );
+  } else {
+    state[streakKey] = 0;
+  }
+
+  const message = isCorrect
+    ? successMessage(item, delta)
+    : `${failureMessage(item, delta)}${getRomanizationCorrection(input.value, item)}`;
+  setFeedbackMessage(feedback, isCorrect ? "success" : "danger", message);
+  saveProgress();
+  renderStats();
+  renderDetailCard();
+  renderFocusRadar();
+}
+
+function revealTypedExercise({
+  stateKey,
+  mode,
+  input,
+  form,
+  feedback,
+  breakdownElement = null,
+  streakKey,
+  xp,
+  phraseBlock = false,
+  message,
+}) {
+  const item = state[stateKey];
+  if (!item || item.answered) {
+    return;
+  }
+
+  item.answered = true;
+  state[streakKey] = 0;
+  setTypedExerciseState(form, input, true);
+  setBreakdownVisibility(breakdownElement, true);
+
+  const itemMeta = markItemProgress(item.id, false);
+  const charMetas = markTextProgress(item.text, false);
+  const delta = applyXpDelta(xp.reveal);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: false,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+    phraseBlock,
+  });
+  recordTrainBlockAttempt(mode, false);
+  setFeedbackMessage(feedback, "info", message(item, delta));
+  saveProgress();
+  renderStats();
+  renderDetailCard();
+  renderFocusRadar();
+}
+
+function revealReadingAnswer() {
+  revealTypedExercise({
+    stateKey: "reading",
+    mode: "reading",
+    input: elements.readingInput,
+    form: elements.readingForm,
+    feedback: elements.readingFeedback,
+    streakKey: "readingStreak",
+    xp: xpTable.reading,
+    message: (item, delta) =>
+      `${item.answer} - ${item.breakdown}${item.pseudo ? " - combinacao de treino" : ""} (${formatXpDelta(delta)})`,
+  });
+}
+
+function revealContextAnswer() {
+  revealTypedExercise({
+    stateKey: "context",
+    mode: "context",
+    input: elements.contextInput,
+    form: elements.contextForm,
+    feedback: elements.contextFeedback,
+    breakdownElement: elements.contextBreakdown,
+    streakKey: "contextStreak",
+    xp: xpTable.context,
+    phraseBlock: true,
+    message: (item, delta) =>
+      `${item.answer} | ${item.breakdown} | ${item.meaning} (${formatXpDelta(delta)})`,
+  });
+}
+
+function revealPhraseAnswer() {
+  revealTypedExercise({
+    stateKey: "phrase",
+    mode: "phrases",
+    input: elements.phraseInput,
+    form: elements.phraseForm,
+    feedback: elements.phraseFeedback,
+    breakdownElement: elements.phraseBreakdown,
+    streakKey: "phraseStreak",
+    xp: xpTable.phrases,
+    phraseBlock: true,
+    message: (item, delta) =>
+      `${item.answer} | ${item.breakdown} | ${item.meaning} (${formatXpDelta(delta)})`,
+  });
+}
+
+function revealDictationAnswer() {
+  revealTypedExercise({
+    stateKey: "dictation",
+    mode: "dictation",
+    input: elements.dictationInput,
+    form: elements.dictationForm,
+    feedback: elements.dictationFeedback,
+    streakKey: "dictationStreak",
+    xp: xpTable.dictation,
+    phraseBlock: true,
+    message: (item, delta) =>
+      `${item.answer} | ${item.breakdown} | ${item.meaning} (${formatXpDelta(delta)})`,
+  });
+}
+
+function revealBuilderAnswer() {
+  if (!state.builder || state.builder.locked) {
+    return;
+  }
+
+  state.builder.selected = [...state.builder.chars];
+  state.builder.locked = true;
+  state.builderStreak = 0;
+  const itemMeta = markItemProgress(state.builder.id, false);
+  const charMetas = markTextProgress(state.builder.text, false);
+  const delta = applyXpDelta(xpTable.builder.reveal);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: false,
+    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  });
+  recordTrainBlockAttempt("builder", false);
+  setFeedbackMessage(
+    elements.builderFeedback,
+    "info",
+    `${state.builder.text} - ${state.builder.romajiLabel} - ${state.builder.meaning} (${formatXpDelta(delta)})`
+  );
+  saveProgress();
+  renderStats();
+  renderBuilder();
+  renderDetailCard();
+  renderFocusRadar();
+}
+
+function handleShurikenInput(event) {
+  if (!state.arcade.shuriken.running || !state.arcade.shuriken.current) {
+    return;
+  }
+
+  const typed = normalizeRomanization(event.target.value);
+  const expected = normalizeRomanization(state.arcade.shuriken.current.romaji);
+  if (typed !== expected) {
+    return;
+  }
+
+  const reviewMeta = markCharProgress(state.arcade.shuriken.current.id, true);
+  const delta = applyXpDelta(xpTable.arcadeShurikenHit);
+  recordActivityEvent({
+    xpDelta: delta,
+    success: true,
+    wasDue: reviewMeta.wasDue,
+  });
+  state.arcade.shuriken.score += 10 + state.arcade.shuriken.combo * 3;
+  state.arcade.shuriken.combo += 1;
+  state.progress.bestArcadeShuriken = Math.max(
+    state.progress.bestArcadeShuriken || 0,
+    state.arcade.shuriken.score
+  );
+  state.arcade.shuriken.status =
+    `${state.arcade.shuriken.current.char} dominado. Proximo arremesso. (${formatXpDelta(delta)})`;
+  saveProgress();
+  renderStats();
+  spawnShurikenToken();
+  renderArcade();
 }
 
 function renderTrainRail() {
@@ -4336,17 +4264,28 @@ function renderRanking() {
     const points = isWeekly ? entry.summary.weeklyXp || 0 : entry.summary.xp || 0;
     const row = document.createElement("div");
     row.className = `ranking-row${entry.userName === state.currentUser ? " is-current" : ""}`;
-    row.innerHTML = `
-      <span class="ranking-position">#${index + 1}</span>
-      <div class="ranking-meta">
-        <strong>${entry.userName}</strong>
-        <p>${entry.summary.rank} - LV ${entry.summary.level} - streak ${entry.summary.dailyStreak || 0}d</p>
-      </div>
-      <div class="ranking-points">
-        <strong>${points}</strong>
-        <span>${isWeekly ? "XP 7d" : "XP"}</span>
-      </div>
-    `;
+
+    const position = document.createElement("span");
+    position.className = "ranking-position";
+    position.textContent = `#${index + 1}`;
+
+    const meta = document.createElement("div");
+    meta.className = "ranking-meta";
+    const name = document.createElement("strong");
+    name.textContent = entry.userName;
+    const details = document.createElement("p");
+    details.textContent = `${entry.summary.rank} - LV ${entry.summary.level} - streak ${entry.summary.dailyStreak || 0}d`;
+    meta.append(name, details);
+
+    const pointsBlock = document.createElement("div");
+    pointsBlock.className = "ranking-points";
+    const pointsValue = document.createElement("strong");
+    pointsValue.textContent = String(points);
+    const pointsLabel = document.createElement("span");
+    pointsLabel.textContent = isWeekly ? "XP 7d" : "XP";
+    pointsBlock.append(pointsValue, pointsLabel);
+
+    row.append(position, meta, pointsBlock);
     elements.arcadeRankingList.appendChild(row);
   });
 }
@@ -6021,14 +5960,16 @@ function checkQuizAnswer(choice, button) {
 
 function generateReading() {
   const deck = getActiveReadingDeck();
-  state.reading = pickAdaptive(
+  const next = pickAdaptive(
     deck,
     "reading",
     (item) => item.id,
     (item) => computeItemWeight(item),
     { isRotationExempt: isRotationExemptItem }
   );
+  state.reading = next ? { ...next, answered: false } : null;
   elements.readingInput.value = "";
+  setTypedExerciseState(elements.readingForm, elements.readingInput, false);
   clearFeedbackMessage(elements.readingFeedback);
 }
 
@@ -6037,69 +5978,39 @@ function renderReading() {
     return;
   }
   elements.readingWord.textContent = state.reading.text;
+  setTypedExerciseState(elements.readingForm, elements.readingInput, state.reading.answered);
 }
 
 function checkReading() {
-  if (!state.reading) {
-    return;
-  }
-
-  const typed = normalizeRomanization(elements.readingInput.value);
-  const expected = normalizeRomanization(state.reading.answer);
-  const isCorrect = typed === expected;
-
-  const itemMeta = markItemProgress(state.reading.id, isCorrect);
-  const charMetas = markTextProgress(state.reading.text, isCorrect);
-  const delta = applyXpDelta(isCorrect ? xpTable.reading.correct : xpTable.reading.wrong);
-  recordActivityEvent({
-    xpDelta: delta,
-    success: isCorrect,
-    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  checkTypedExercise({
+    stateKey: "reading",
+    mode: "reading",
+    input: elements.readingInput,
+    form: elements.readingForm,
+    feedback: elements.readingFeedback,
+    streakKey: "readingStreak",
+    bestStreakKey: "bestReadingStreak",
+    xp: xpTable.reading,
+    successMessage: (item, delta) =>
+      `Boa. ${item.breakdown} = ${item.answer}. (${formatXpDelta(delta)})`,
+    failureMessage: (item) =>
+      `Resposta: ${item.answer} - ${item.breakdown}${item.pseudo ? " - combinacao de treino" : ""}`,
   });
-  recordTrainBlockAttempt("reading", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.readingFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Boa. ${state.reading.breakdown} = ${state.reading.answer}. (${formatXpDelta(delta)})`
-        : `Resposta: ${state.reading.answer} - ${state.reading.breakdown}${state.reading.pseudo ? " - combinacao de treino" : ""}`
-    );
-  });
-
-  if (isCorrect) {
-    state.readingStreak += 1;
-    state.progress.bestReadingStreak = Math.max(
-      state.progress.bestReadingStreak || 0,
-      state.readingStreak
-    );
-    setFeedbackMessage(
-      elements.readingFeedback,
-      "success",
-      `Boa. ${state.reading.breakdown} = ${state.reading.answer}. (${formatXpDelta(delta)})`
-    );
-  } else {
-    state.readingStreak = 0;
-    elements.readingFeedback.textContent =
-      `Resposta: ${state.reading.answer} • ${state.reading.breakdown}${state.reading.pseudo ? " • combinacao de treino" : ""}`;
-  }
-
-  saveProgress();
-  renderStats();
-  renderDetailCard();
-  renderFocusRadar();
 }
 
 function generateContext() {
   const deck = getActiveContextDeck();
-  state.context = pickAdaptive(
+  const next = pickAdaptive(
     deck,
     "context",
     (item) => item.id,
     (item) => computeItemWeight(item),
     { isRotationExempt: isRotationExemptItem }
   );
+  state.context = next ? { ...next, answered: false } : null;
   elements.contextInput.value = "";
+  setTypedExerciseState(elements.contextForm, elements.contextInput, false);
+  setBreakdownVisibility(elements.contextBreakdown, false);
   clearFeedbackMessage(elements.contextFeedback);
 }
 
@@ -6110,7 +6021,10 @@ function renderContext() {
 
   elements.contextKindLabel.textContent = labelForTextGroup(state.context.group);
   elements.contextWord.textContent = state.context.text;
+  elements.contextBreakdown.textContent = state.context.breakdown;
   elements.contextMeaning.textContent = state.context.meaning;
+  setTypedExerciseState(elements.contextForm, elements.contextInput, state.context.answered);
+  setBreakdownVisibility(elements.contextBreakdown, state.context.answered);
 }
 
 function setPhraseCategory(category) {
@@ -6128,14 +6042,17 @@ function getActivePhraseDeck() {
 
 function generatePhrase() {
   const deck = getActivePhraseDeck();
-  state.phrase = pickAdaptive(
+  const next = pickAdaptive(
     deck,
     "phrases",
     (item) => item.id,
     (item) => computeItemWeight(item),
     { isRotationExempt: isRotationExemptItem }
   );
+  state.phrase = next ? { ...next, answered: false } : null;
   elements.phraseInput.value = "";
+  setTypedExerciseState(elements.phraseForm, elements.phraseInput, false);
+  setBreakdownVisibility(elements.phraseBreakdown, false);
   clearFeedbackMessage(elements.phraseFeedback);
 }
 
@@ -6153,104 +6070,46 @@ function renderPhrase() {
   elements.phraseWord.textContent = state.phrase.text;
   elements.phraseBreakdown.textContent = state.phrase.breakdown;
   elements.phraseMeaning.textContent = state.phrase.meaning;
+  setTypedExerciseState(elements.phraseForm, elements.phraseInput, state.phrase.answered);
+  setBreakdownVisibility(elements.phraseBreakdown, state.phrase.answered);
 }
 
 function checkPhrase() {
-  if (!state.phrase) {
-    return;
-  }
-
-  const typed = normalizeRomanization(elements.phraseInput.value);
-  const expected = normalizeRomanization(state.phrase.answer);
-  const isCorrect = typed === expected;
-
-  const itemMeta = markItemProgress(state.phrase.id, isCorrect);
-  const charMetas = markTextProgress(state.phrase.text, isCorrect);
-  const delta = applyXpDelta(isCorrect ? xpTable.phrases.correct : xpTable.phrases.wrong);
-  recordActivityEvent({
-    xpDelta: delta,
-    success: isCorrect,
-    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  checkTypedExercise({
+    stateKey: "phrase",
+    mode: "phrases",
+    input: elements.phraseInput,
+    form: elements.phraseForm,
+    feedback: elements.phraseFeedback,
+    breakdownElement: elements.phraseBreakdown,
+    streakKey: "phraseStreak",
+    bestStreakKey: "bestPhraseStreak",
+    xp: xpTable.phrases,
     phraseBlock: true,
+    successMessage: (item, delta) =>
+      `Boa. ${item.breakdown} = ${item.answer}. (${formatXpDelta(delta)})`,
+    failureMessage: (item, delta) =>
+      `Resposta: ${item.answer} | ${item.breakdown} | ${item.meaning} (${formatXpDelta(delta)})`,
   });
-  recordTrainBlockAttempt("phrases", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.phraseFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Boa. ${state.phrase.breakdown} = ${state.phrase.answer}. (${formatXpDelta(delta)})`
-        : `Resposta: ${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`
-    );
-  });
-
-  if (isCorrect) {
-    state.phraseStreak += 1;
-    state.progress.bestPhraseStreak = Math.max(
-      state.progress.bestPhraseStreak || 0,
-      state.phraseStreak
-    );
-    elements.phraseFeedback.textContent =
-      `Boa. ${state.phrase.breakdown} = ${state.phrase.answer}. (${formatXpDelta(delta)})`;
-  } else {
-    state.phraseStreak = 0;
-    elements.phraseFeedback.textContent =
-      `Resposta: ${state.phrase.answer} | ${state.phrase.breakdown} | ${state.phrase.meaning} (${formatXpDelta(delta)})`;
-  }
-
-  saveProgress();
-  renderStats();
-  renderDetailCard();
-  renderFocusRadar();
 }
 
 function checkContext() {
-  if (!state.context) {
-    return;
-  }
-
-  const typed = normalizeRomanization(elements.contextInput.value);
-  const expected = normalizeRomanization(state.context.answer);
-  const isCorrect = typed === expected;
-
-  const itemMeta = markItemProgress(state.context.id, isCorrect);
-  const charMetas = markTextProgress(state.context.text, isCorrect);
-  const delta = applyXpDelta(isCorrect ? xpTable.context.correct : xpTable.context.wrong);
-  recordActivityEvent({
-    xpDelta: delta,
-    success: isCorrect,
-    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  checkTypedExercise({
+    stateKey: "context",
+    mode: "context",
+    input: elements.contextInput,
+    form: elements.contextForm,
+    feedback: elements.contextFeedback,
+    breakdownElement: elements.contextBreakdown,
+    streakKey: "contextStreak",
+    bestStreakKey: "bestContextStreak",
+    xp: xpTable.context,
     phraseBlock: true,
+    successMessage: (item, delta) =>
+      `Boa. ${item.breakdown} = ${item.answer}. (${formatXpDelta(delta)})`,
+    failureMessage: (item, delta) =>
+      `Resposta: ${item.answer} | ${item.breakdown} | ${item.meaning} (${formatXpDelta(delta)})`,
   });
-  recordTrainBlockAttempt("context", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.contextFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Boa. ${state.context.breakdown} = ${state.context.answer}. (${formatXpDelta(delta)})`
-        : `Resposta: ${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`
-    );
-  });
-
-  if (isCorrect) {
-    state.contextStreak += 1;
-    state.progress.bestContextStreak = Math.max(
-      state.progress.bestContextStreak || 0,
-      state.contextStreak
-    );
-    elements.contextFeedback.textContent =
-      `Boa. ${state.context.breakdown} = ${state.context.answer}. (${formatXpDelta(delta)})`;
-  } else {
-    state.contextStreak = 0;
-    elements.contextFeedback.textContent =
-      `Resposta: ${state.context.answer} | ${state.context.breakdown} | ${state.context.meaning} (${formatXpDelta(delta)})`;
-  }
-
-  saveProgress();
-  renderStats();
-  renderDetailCard();
-  renderFocusRadar();
 }
 
 function generateCloze() {
@@ -6325,15 +6184,13 @@ function checkClozeAnswer(choice, button) {
     wasDue: itemMeta.wasDue || Boolean(charMeta?.wasDue),
   });
   recordTrainBlockAttempt("cloze", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.clozeFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Certo. ${state.cloze.text} = ${state.cloze.meaning}. (${formatXpDelta(delta)})`
-        : `Era ${state.cloze.text} | ${state.cloze.answer} | ${state.cloze.meaning}. (${formatXpDelta(delta)})`
-    );
-  });
+  setFeedbackMessage(
+    elements.clozeFeedback,
+    isCorrect ? "success" : "danger",
+    isCorrect
+      ? `Certo. ${state.cloze.text} = ${state.cloze.meaning}. (${formatXpDelta(delta)})`
+      : `Era ${state.cloze.text} | ${state.cloze.answer} | ${state.cloze.meaning}. (${formatXpDelta(delta)})`
+  );
 
   if (isCorrect) {
     state.clozeStreak += 1;
@@ -6342,13 +6199,9 @@ function checkClozeAnswer(choice, button) {
       state.clozeStreak
     );
     button.classList.add("correct");
-    elements.clozeFeedback.textContent =
-      `Certo. ${state.cloze.text} = ${state.cloze.meaning}. (${formatXpDelta(delta)})`;
   } else {
     state.clozeStreak = 0;
     button.classList.add("wrong");
-    elements.clozeFeedback.textContent =
-      `Era ${state.cloze.text} | ${state.cloze.answer} | ${state.cloze.meaning}. (${formatXpDelta(delta)})`;
   }
 
   Array.from(elements.clozeOptions.children).forEach((optionButton) => {
@@ -6366,14 +6219,16 @@ function checkClozeAnswer(choice, button) {
 
 function generateDictation() {
   const deck = getActiveContextDeck();
-  state.dictation = pickAdaptive(
+  const next = pickAdaptive(
     deck,
     "dictation",
     (item) => item.id,
     (item) => computeItemWeight(item),
     { isRotationExempt: isRotationExemptItem }
   );
+  state.dictation = next ? { ...next, answered: false } : null;
   elements.dictationInput.value = "";
+  setTypedExerciseState(elements.dictationForm, elements.dictationInput, false);
   clearFeedbackMessage(elements.dictationFeedback);
 }
 
@@ -6384,55 +6239,25 @@ function renderDictation() {
 
   elements.dictationKindLabel.textContent = `${labelForTextGroup(state.dictation.group)} em audio`;
   elements.dictationMeaning.textContent = state.dictation.meaning;
+  setTypedExerciseState(elements.dictationForm, elements.dictationInput, state.dictation.answered);
 }
 
 function checkDictation() {
-  if (!state.dictation) {
-    return;
-  }
-
-  const typed = normalizeRomanization(elements.dictationInput.value);
-  const expected = normalizeRomanization(state.dictation.answer);
-  const isCorrect = typed === expected;
-
-  const itemMeta = markItemProgress(state.dictation.id, isCorrect);
-  const charMetas = markTextProgress(state.dictation.text, isCorrect);
-  const delta = applyXpDelta(isCorrect ? xpTable.dictation.correct : xpTable.dictation.wrong);
-  recordActivityEvent({
-    xpDelta: delta,
-    success: isCorrect,
-    wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
+  checkTypedExercise({
+    stateKey: "dictation",
+    mode: "dictation",
+    input: elements.dictationInput,
+    form: elements.dictationForm,
+    feedback: elements.dictationFeedback,
+    streakKey: "dictationStreak",
+    bestStreakKey: "bestDictationStreak",
+    xp: xpTable.dictation,
     phraseBlock: true,
+    successMessage: (item, delta) =>
+      `Boa. ${item.answer} | ${item.meaning}. (${formatXpDelta(delta)})`,
+    failureMessage: (item, delta) =>
+      `Resposta: ${item.text} | ${item.answer} | ${item.meaning} (${formatXpDelta(delta)})`,
   });
-  recordTrainBlockAttempt("dictation", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.dictationFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Boa. ${state.dictation.answer} | ${state.dictation.meaning}. (${formatXpDelta(delta)})`
-        : `Resposta: ${state.dictation.text} | ${state.dictation.answer} | ${state.dictation.meaning} (${formatXpDelta(delta)})`
-    );
-  });
-
-  if (isCorrect) {
-    state.dictationStreak += 1;
-    state.progress.bestDictationStreak = Math.max(
-      state.progress.bestDictationStreak || 0,
-      state.dictationStreak
-    );
-    elements.dictationFeedback.textContent =
-      `Boa. ${state.dictation.answer} | ${state.dictation.meaning}. (${formatXpDelta(delta)})`;
-  } else {
-    state.dictationStreak = 0;
-    elements.dictationFeedback.textContent =
-      `Resposta: ${state.dictation.text} | ${state.dictation.answer} | ${state.dictation.meaning} (${formatXpDelta(delta)})`;
-  }
-
-  saveProgress();
-  renderStats();
-  renderDetailCard();
-  renderFocusRadar();
 }
 
 function generateConfusion() {
@@ -6488,15 +6313,13 @@ function checkConfusionAnswer(choice, button) {
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
   });
   recordTrainBlockAttempt("confusion", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.confusionFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Certo. ${state.confusion.note} (${formatXpDelta(delta)})`
-        : `Quase. ${state.confusion.note} (${formatXpDelta(delta)})`
-    );
-  });
+  setFeedbackMessage(
+    elements.confusionFeedback,
+    isCorrect ? "success" : "danger",
+    isCorrect
+      ? `Certo. ${state.confusion.note} (${formatXpDelta(delta)})`
+      : `Quase. ${state.confusion.note} (${formatXpDelta(delta)})`
+  );
 
   if (isCorrect) {
     state.confusionStreak += 1;
@@ -6505,13 +6328,9 @@ function checkConfusionAnswer(choice, button) {
       state.confusionStreak
     );
     button.classList.add("correct");
-    elements.confusionFeedback.textContent =
-      `Certo. ${state.confusion.note} (${formatXpDelta(delta)})`;
   } else {
     state.confusionStreak = 0;
     button.classList.add("wrong");
-    elements.confusionFeedback.textContent =
-      `Quase. ${state.confusion.note} (${formatXpDelta(delta)})`;
   }
 
   Array.from(elements.confusionOptions.children).forEach((optionButton) => {
@@ -6625,15 +6444,13 @@ function checkBuilder() {
     wasDue: itemMeta.wasDue || charMetas.some((meta) => meta.wasDue),
   });
   recordTrainBlockAttempt("builder", isCorrect);
-  queueMicrotask(() => {
-    setFeedbackMessage(
-      elements.builderFeedback,
-      isCorrect ? "success" : "danger",
-      isCorrect
-        ? `Boa. ${expected} = ${state.builder.romajiLabel}. (${formatXpDelta(delta)})`
-        : `Era ${expected} - ${state.builder.romajiLabel} - ${state.builder.meaning}.`
-    );
-  });
+  setFeedbackMessage(
+    elements.builderFeedback,
+    isCorrect ? "success" : "danger",
+    isCorrect
+      ? `Boa. ${expected} = ${state.builder.romajiLabel}. (${formatXpDelta(delta)})`
+      : `Era ${expected} - ${state.builder.romajiLabel} - ${state.builder.meaning}.`
+  );
 
   if (isCorrect) {
     state.builderStreak += 1;
@@ -6641,12 +6458,8 @@ function checkBuilder() {
       state.progress.bestBuilderStreak || 0,
       state.builderStreak
     );
-    elements.builderFeedback.textContent =
-      `Boa. ${expected} = ${state.builder.romajiLabel}. (${formatXpDelta(delta)})`;
   } else {
     state.builderStreak = 0;
-    elements.builderFeedback.textContent =
-      `Era ${expected} • ${state.builder.romajiLabel} • ${state.builder.meaning}.`;
   }
 
   saveProgress();
@@ -7066,7 +6879,7 @@ function markItemProgress(id, success) {
 }
 
 function markTextProgress(text, success) {
-  return [...text].map((char) => {
+  return [...new Set([...text])].map((char) => {
     const entry = charIndex.get(char);
     if (entry) {
       return markCharProgress(entry.id, success);
@@ -7076,7 +6889,7 @@ function markTextProgress(text, success) {
 }
 
 function markCharsByList(charIds, success) {
-  return charIds.map((id) => markCharProgress(id, success));
+  return [...new Set(charIds)].map((id) => markCharProgress(id, success));
 }
 
 function isWeakEntry(entry) {
@@ -7416,7 +7229,7 @@ function createContextDecks(config) {
       Object.fromEntries(
         Object.entries(levels).map(([level, items]) => [
           level,
-          items.map(([text, answer, breakdown, meaning, group], index) => ({
+          items.map(([text, answer, breakdown, meaning, group, acceptedAnswers = []], index) => ({
             id: `context-${script}-${level}-${index}-${text}`,
             script,
             text,
@@ -7424,6 +7237,7 @@ function createContextDecks(config) {
             breakdown: normalizeBreakdown(breakdown),
             meaning,
             group,
+            acceptedAnswers,
             chars: [...text],
             charIds: [],
           })),
@@ -7437,7 +7251,7 @@ function createPhraseDecks(config) {
   return Object.fromEntries(
     Object.entries(config).map(([level, items]) => [
       level,
-      items.map(([category, text, answer, breakdown, meaning, scene], index) => ({
+      items.map(([category, text, answer, breakdown, meaning, scene, acceptedAnswers = []], index) => ({
         id: `phrase-${level}-${category}-${index}-${text}`,
         category,
         text,
@@ -7445,6 +7259,7 @@ function createPhraseDecks(config) {
         breakdown: normalizeBreakdown(breakdown),
         meaning,
         scene,
+        acceptedAnswers,
         chars: [...text],
         charIds: [],
       })),
@@ -7507,7 +7322,7 @@ function hydrateDeckCharIds(deckGroup) {
 
 function hydrateItemCharIds(item) {
   const sourceChars = item.chars || [...item.text || ""];
-  item.charIds = sourceChars
+  item.charIds = [...new Set(sourceChars)]
     .map((char) => charIndex.get(char))
     .filter(Boolean)
     .map((entry) => entry.id);
@@ -7525,7 +7340,22 @@ function groupByFamily(entries) {
 }
 
 function normalizeRomanization(value) {
-  return value.toLowerCase().replace(/\s+/g, "").replace(/-/g, "");
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function isRomanizationAnswer(value, item) {
+  const typed = normalizeRomanization(value);
+  if (!typed || !item) {
+    return false;
+  }
+
+  const accepted = [item.answer, ...(item.acceptedAnswers || [])];
+  return accepted.some((answer) => normalizeRomanization(answer) === typed);
 }
 
 function countOccurrences(list, target) {
