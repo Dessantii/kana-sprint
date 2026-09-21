@@ -191,7 +191,7 @@ function assertVisibleMessage(message, label) {
     ま: "ma", み: "mi", む: "mu", め: "me", も: "mo",
     や: "ya", ゆ: "yu", よ: "yo",
     ら: "ra", り: "ri", る: "ru", れ: "re", ろ: "ro",
-    わ: "wa", を: "wo", ん: "n",
+    わ: "wa", を: "o", ん: "n",
   };
 
   await page.locator('[data-arcade-launch="shuriken"]:visible').first().click();
@@ -267,6 +267,18 @@ function assertVisibleMessage(message, label) {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     assert.ok(overflow <= 1, `${section} overflows the mobile viewport by ${overflow}px.`);
   }
+  await page.locator("#mobile-nav-toggle").click();
+  assert.equal(await page.locator("#main-nav").evaluate((nav) => nav.classList.contains("is-mobile-collapsed")), true);
+  assert.equal(await page.locator("#section-nav").isHidden(), true);
+  assert.equal(await page.locator("#mobile-nav-toggle").getAttribute("aria-expanded"), "false");
+  assert.ok((await page.locator("#main-nav").boundingBox()).height < 64, "Collapsed mobile menu is too tall.");
+  await page.screenshot({
+    path: path.join(artifactDir, "mobile-nav-collapsed.png"),
+    fullPage: true,
+  });
+  await page.locator("#mobile-nav-toggle").click();
+  assert.equal(await page.locator("#section-nav").isVisible(), true);
+  assert.equal(await page.locator("#mobile-nav-toggle").getAttribute("aria-expanded"), "true");
   await page.screenshot({
     path: path.join(artifactDir, "smoke-mobile.png"),
     fullPage: true,
@@ -286,6 +298,7 @@ function assertVisibleMessage(message, label) {
         testedArcadeGames: ["shuriken", "foods", "pairs"],
         localSessionRestored: true,
         mobileViewport: "390x844",
+        mobileNavigationToggle: true,
         testedModes: ["recognition", "reading", "context", "phrases", "cloze", "dictation", "confusion", "builder"],
         testedSections: ["today", "study", "training", "progress", "review", "arcade"],
       },

@@ -3,6 +3,7 @@ const profileStorageKey = "kanaSprintProfilesV1";
 const sessionStorageKey = "kanaSprintSessionV1";
 const sessionMetaStorageKey = "kanaSprintSessionMetaV1";
 const cloudSessionCacheKey = "kanaSprintCloudSessionV1";
+const mobileNavPreferenceKey = "kanaSprintMobileNavCollapsedV1";
 const progressStoragePrefix = "kanaSprintProgressV4::";
 const pendingSyncPrefix = "kanaSprintPendingSyncV1::";
 const remoteSaveDelay = 420;
@@ -1079,7 +1080,10 @@ const elements = {
   signupName: document.getElementById("signup-name"),
   signupPassword: document.getElementById("signup-password"),
   authFeedback: document.getElementById("auth-feedback"),
+  mainNav: document.getElementById("main-nav"),
   sectionNav: document.getElementById("section-nav"),
+  mobileNavToggle: document.getElementById("mobile-nav-toggle"),
+  mobileNavCurrent: document.getElementById("mobile-nav-current"),
   trainNav: document.getElementById("train-nav"),
   scriptToggle: document.getElementById("script-toggle"),
   levelToggle: document.getElementById("level-toggle"),
@@ -1355,6 +1359,7 @@ const state = {
   storageMode: "local",
   syncStatus: "local",
   trainNavExpanded: false,
+  mobileNavCollapsed: readMobileNavPreference(),
   audioRate: 0.9,
   audioRepeat: 1,
   rankingView: "overall",
@@ -2853,6 +2858,10 @@ function bindControls() {
     }
   });
 
+  elements.mobileNavToggle?.addEventListener("click", () => {
+    setMobileNavCollapsed(!state.mobileNavCollapsed);
+  });
+
   document.body.addEventListener("click", (event) => {
     const button = event.target.closest("[data-section-target]");
     if (!button || button.closest("#section-nav")) {
@@ -3320,6 +3329,24 @@ function setSection(section, trainTarget) {
   renderArcade();
 }
 
+function readMobileNavPreference() {
+  try {
+    return localStorage.getItem(mobileNavPreferenceKey) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function setMobileNavCollapsed(collapsed) {
+  state.mobileNavCollapsed = Boolean(collapsed);
+  try {
+    localStorage.setItem(mobileNavPreferenceKey, String(state.mobileNavCollapsed));
+  } catch {
+    // The menu still works when browser storage is unavailable.
+  }
+  renderMobileNavigation();
+}
+
 function setActiveToggle(container, key, value) {
   container.querySelectorAll("button").forEach((button) => {
     button.classList.toggle("is-active", button.dataset[key] === value);
@@ -3386,6 +3413,27 @@ function renderSectionNav() {
   document.querySelectorAll("[data-section-panel]").forEach((section) => {
     section.classList.toggle("is-active", section.dataset.sectionPanel === state.section);
   });
+  renderMobileNavigation();
+}
+
+function renderMobileNavigation() {
+  const labels = {
+    today: "Hoje",
+    study: "Estudo",
+    training: "Treino",
+    progress: "Progresso",
+    review: "Revisao",
+    arcade: "Arcade",
+  };
+  const collapsed = state.mobileNavCollapsed;
+  elements.mainNav?.classList.toggle("is-mobile-collapsed", collapsed);
+  if (elements.mobileNavCurrent) {
+    elements.mobileNavCurrent.textContent = labels[state.section] || "Menu";
+  }
+  if (elements.mobileNavToggle) {
+    elements.mobileNavToggle.textContent = collapsed ? "Mostrar menu" : "Ocultar menu";
+    elements.mobileNavToggle.setAttribute("aria-expanded", String(!collapsed));
+  }
 }
 
 function renderTrainNav() {

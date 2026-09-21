@@ -587,6 +587,10 @@ a:focus-visible {
   flex-wrap: nowrap;
 }
 
+.mobile-nav-toolbar {
+  display: none;
+}
+
 .main-nav-track button,
 .train-nav button {
   padding: 0.9rem 1.05rem;
@@ -3340,6 +3344,48 @@ button:disabled {
     margin-top: 0.85rem;
     border-radius: 1.6rem;
     padding: 0.35rem;
+  }
+
+  .mobile-nav-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    min-height: 42px;
+    padding: 0.12rem 0.35rem 0.42rem;
+  }
+
+  .mobile-nav-current {
+    color: var(--secondary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mobile-nav-toggle {
+    min-height: 38px;
+    padding: 0.54rem 0.82rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--surface-contrast);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .main-nav.is-mobile-collapsed {
+    padding: 0.22rem 0.35rem;
+  }
+
+  .main-nav.is-mobile-collapsed .mobile-nav-toolbar {
+    min-height: 40px;
+    padding: 0.08rem 0.2rem;
+  }
+
+  .main-nav.is-mobile-collapsed .main-nav-track {
+    display: none;
   }
 
   .session-banner {
